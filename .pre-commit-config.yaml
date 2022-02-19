@@ -19,3 +19,11 @@ repos:
     hooks:
       - id: python-no-eval
       - id: python-use-type-annotations
+
+  - repo: local
+    hooks:
+      - id: lint
+        name: lint
+        language: system
+        entry: make lint
+        pass_filenames: false
