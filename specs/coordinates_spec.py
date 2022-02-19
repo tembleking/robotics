@@ -65,9 +65,9 @@ with description('coordinates') as self:
     with it('creates the basis correctly'):
         b = Basis(origin=Point(5, 6), x_axis=Direction(1, 2), y_axis=Direction(3, 4))
 
-        expect(b.x_axis()).to(equal(Direction(1, 2).normalize()))
-        expect(b.y_axis()).to(equal(Direction(3, 4).normalize()))
-        expect(b.origin()).to(equal(Point(5, 6)))
+        expect(b.x_axis).to(equal(Direction(1, 2).normalize()))
+        expect(b.y_axis).to(equal(Direction(3, 4).normalize()))
+        expect(b.origin).to(equal(Point(5, 6)))
 
     with it('retrieves the angle in radians of a basis'):
         basis = Basis.from_angle_radians(Point(0, 0), math.pi / 4)

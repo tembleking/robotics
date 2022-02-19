@@ -22,17 +22,20 @@ class Basis:
     def from_angle_radians(origin: 'Point', angle: float):
         return Basis(origin, Direction(1, 0).rotate_radians(angle), Direction(0, 1).rotate_radians(angle))
 
+    @property
     def x_axis(self) -> 'Direction':
         return Direction(self._matrix_coords.item((0, 0)), self._matrix_coords.item((1, 0)))
 
+    @property
     def y_axis(self) -> 'Direction':
         return Direction(self._matrix_coords.item((0, 1)), self._matrix_coords.item((1, 1)))
 
+    @property
     def origin(self) -> 'Point':
         return Point(self._matrix_coords.item((0, 2)), self._matrix_coords.item((1, 2)))
 
     def angle_radians(self):
-        return math.atan2(self.x_axis().y, self.x_axis().x)
+        return math.atan2(self.x_axis.y, self.x_axis.x)
 
     def angle_degrees(self):
         return self.angle_radians() * 180 / math.pi
@@ -65,8 +68,8 @@ class _Coordinates:
         return _Coordinates(transformation * self._matrix_coords)
 
     def seen_from_other_basis(self, other: 'Basis'):
-        transformation = numpy.matrix([[other.x_axis().x, other.y_axis().x, other.origin().x],
-                                       [other.x_axis().y, other.y_axis().y, other.origin().y],
+        transformation = numpy.matrix([[other.x_axis.x, other.y_axis.x, other.origin.x],
+                                       [other.x_axis.y, other.y_axis.y, other.origin.y],
                                        [0.0, 0.0, 1.0]])
         return _Coordinates(transformation * self._matrix_coords)
 
