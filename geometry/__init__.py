@@ -25,11 +25,11 @@ class Basis:
 
     @property
     def x_axis(self) -> 'Direction':
-        return Direction(self._matrix_coords.item((0, 0)), self._matrix_coords.item((1, 0)))
+        return Direction(self._matrix_coords.item((0, 0)), self._matrix_coords.item((1, 0))).normalize()
 
     @property
     def y_axis(self) -> 'Direction':
-        return Direction(self._matrix_coords.item((0, 1)), self._matrix_coords.item((1, 1)))
+        return Direction(self._matrix_coords.item((0, 1)), self._matrix_coords.item((1, 1))).normalize()
 
     @property
     def origin(self) -> 'Point':
@@ -44,6 +44,14 @@ class Basis:
     def inverse(self):
         basis = copy.deepcopy(self)
         basis._matrix_coords = numpy.linalg.inv(basis._matrix_coords)
+        return basis
+
+    def seen_from_other_basis(self, other: 'Basis'):
+        basis = copy.deepcopy(self)
+        transformation = numpy.matrix([[other.x_axis.x, other.y_axis.x, other.origin.x],
+                                       [other.x_axis.y, other.y_axis.y, other.origin.y],
+                                       [0.0, 0.0, 1.0]])
+        basis._matrix_coords = transformation * basis._matrix_coords
         return basis
 
     def __eq__(self, o: object) -> bool:

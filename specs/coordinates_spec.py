@@ -74,6 +74,13 @@ with description('coordinates') as self:
 
         expect(b.inverse()).to(equal(Basis.from_angle_degrees(Point(-1, 1), -90)))
 
+    with it('calculates the basis as seen from other basis'):
+        a = Basis.from_angle_degrees(Point(0, 0), 5)
+        b = Basis.from_angle_degrees(Point(0, 0), 30)
+
+        seen = b.seen_from_other_basis(a)
+        expect(seen).to(equal(Basis.from_angle_degrees(Point(0, 0), 35)))
+
     with it('retrieves the angle in radians of a basis'):
         basis = Basis.from_angle_radians(Point(0, 0), math.pi / 4)
 
