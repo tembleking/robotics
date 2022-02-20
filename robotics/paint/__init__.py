@@ -13,7 +13,7 @@ class Color(IntEnum):
     OTHER = 1
 
 
-class RobotDrawer:
+class RobotPainter:
     def __init__(self, printer, size=Size.SMALL, color=Color.BLACK):
         self.printer = printer
         self.largo = 0.1 * size.value
@@ -21,7 +21,7 @@ class RobotDrawer:
         self.descentre = 0.01 * size.value
         self.color = color.value
 
-    def draw(self, axis_location):
+    def paint(self, axis_location):
         right_back = numpy.array([-self.largo, -self.corto, 1])
         left_back = numpy.array([-self.largo, self.corto, 1])
         right_front = numpy.array([self.largo, -self.corto, 1])
