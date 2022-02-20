@@ -5,7 +5,7 @@ from mamba import description, it
 
 from geometry import Point, Direction, Basis
 
-with description('coordinates') as self:
+with description('Geometry') as self:
     with it('moves the point in the space'):
         p_in_a = Point(2, 3)
 
