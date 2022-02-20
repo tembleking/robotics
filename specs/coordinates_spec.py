@@ -69,6 +69,11 @@ with description('coordinates') as self:
         expect(b.y_axis).to(equal(Direction(3, 4).normalize()))
         expect(b.origin).to(equal(Point(5, 6)))
 
+    with it('calculates the reverse basis correctly'):
+        b = Basis.from_angle_degrees(Point(1, 1), 90)
+
+        expect(b.inverse()).to(equal(Basis.from_angle_degrees(Point(-1, 1), -90)))
+
     with it('retrieves the angle in radians of a basis'):
         basis = Basis.from_angle_radians(Point(0, 0), math.pi / 4)
 

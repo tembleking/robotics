@@ -1,3 +1,4 @@
+import copy
 import math
 
 import numpy
@@ -39,6 +40,17 @@ class Basis:
 
     def angle_degrees(self):
         return self.angle_radians() * 180 / math.pi
+
+    def inverse(self):
+        basis = copy.deepcopy(self)
+        basis._matrix_coords = numpy.linalg.inv(basis._matrix_coords)
+        return basis
+
+    def __eq__(self, o: object) -> bool:
+        return isinstance(o, Basis) and numpy.allclose(self._matrix_coords, o._matrix_coords)
+
+    def __repr__(self) -> str:
+        return f'Basis(origin={self.origin}, x_axis={self.x_axis}, y_axis={self.y_axis}'
 
 
 class _Coordinates:
