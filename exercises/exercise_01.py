@@ -14,7 +14,7 @@ def print_location(location: Location):
 
 print('##########################################')
 print('Apartado 1')
-door_in_world = Location.from_angle_degrees(Point(10, 2.5), 0)
+door_in_world = Location.from_angle_degrees(Point(2.5, 10), 0)
 door_seen_from_robot = Location.from_angle_degrees(Point(5.2, -3), -125)
 
 robot_seen_from_door = door_seen_from_robot.inverse()
