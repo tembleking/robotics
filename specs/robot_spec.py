@@ -2,7 +2,7 @@ from mamba import describe, context, it
 from doublex import Spy, assert_that, called
 from robotics.robot.robot import Robot
 
-with describe("robot") as self:
+with describe("robot", "unit") as self:
     with before.each:
         self.left_motor = Spy()
         self.right_motor = Spy()

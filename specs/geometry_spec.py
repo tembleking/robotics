@@ -7,7 +7,7 @@ from mamba import description, it
 
 from robotics.geometry import Point, Direction, Location
 
-with description('Geometry') as self:
+with description('Geometry', 'unit') as self:
     with it('moves the point in the space'):
         p_in_a = Point(2, 3)
 

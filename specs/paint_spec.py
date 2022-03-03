@@ -4,7 +4,7 @@ from mamba import description, it
 from robotics.paint import RobotPainter, Size, Color
 from specs import np_close
 
-with description('Paint') as self:
+with description('Paint', 'unit') as self:
     with it('paints the localization of the robot'):
         spy = Spy()
         painter = RobotPainter(printer=spy)
