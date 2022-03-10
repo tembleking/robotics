@@ -5,9 +5,9 @@ class Robot:
     def __init__(self,
                  wheel_radius,
                  axis_length,
-                 claw_motor=None,
-                 left_motor=None,
-                 right_motor=None):
+                 claw_motor,
+                 left_motor,
+                 right_motor):
         self.wheel_radius = wheel_radius
         self.axis_length = axis_length
         self.direct_control_matrix = np.matrix(

@@ -9,6 +9,7 @@ with describe('robot', 'unit') as self:
         self.robot = Robot(
             left_motor=self.left_motor,
             right_motor=self.right_motor,
+            claw_motor=None,
             wheel_radius=1,
             axis_length=1
         )
