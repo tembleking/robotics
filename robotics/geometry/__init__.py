@@ -51,6 +51,9 @@ class Point(_Coordinates):
     def displace(self, x, y):
         return Point(self.x + x, self.y + y)
 
+    def distance_to(self, other: 'Point'):
+        return Direction(other.x - self.x, other.y - self.y).modulus()
+
     def __repr__(self) -> str:
         return f'Point(x={self.x}, y={self.y})'
 
@@ -125,6 +128,8 @@ class Location:
         return location
 
     def radius_of_curvature(self):
+        if self.origin.y == 0:
+            return math.inf
         return (self.origin.x ** 2 + self.origin.y ** 2) / (2.0 * self.origin.y)
 
     def angle_of_curvature(self):

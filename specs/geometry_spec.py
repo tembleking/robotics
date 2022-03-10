@@ -153,3 +153,9 @@ with description('Geometry', 'unit') as self:
 
         assert_that(new_location, is_(Location.from_angle_degrees(Point(x=3.001666203960727, y=-0.803778579801407),
                                                                   -29.981639368849333)))
+
+    with it('finds the distance between two points'):
+        a = Point(1, 1)
+        b = Point(4, 5)
+
+        assert_that(a.distance_to(b), is_(5))
