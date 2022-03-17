@@ -16,7 +16,7 @@ class Odometry:
         self.location_lock = Lock()
         self.finished = Value('b')
         self.finished.value = False
-        self.inner_process = Process(target=self._update)
+        self.inner_process = Process(target=self.__update)
         self.x = Value('f')
         self.y = Value('f')
         self.th = Value('f')
@@ -42,7 +42,7 @@ class Odometry:
         result = transformation_matrix.dot(np.matrix([[right_speed], [left_speed]]))
         return result[0, 0], result[1, 0]
 
-    def _update(self):
+    def __update(self):
         while not self.finished.value:
             initial_time = time.time()
 
@@ -51,8 +51,8 @@ class Odometry:
             # Update the Location
             with self.location_lock:
                 # TODO: We could calculate the new location outside of the lock and then assign it
-                self.x.value, self.y.value, self.th.value = self.get_new_location_from_speed(self.x.value, self.y.value,
-                                                                                             self.th.value, v, w)
+                self.x.value, self.y.value, self.th.value = self.__get_new_location_from_speed(self.x.value, self.y.value,
+                                                                                               self.th.value, v, w)
 
             end_time = time.time()
             time.sleep(self.polling_period - (end_time - initial_time))
@@ -61,7 +61,7 @@ class Odometry:
         with self.location_lock:
             return Location.from_angle_radians(Point(self.x.value, self.y.value), self.th.value)
 
-    def get_new_location_from_speed(self, x, y, th, v, w) -> (float, float, float):
+    def __get_new_location_from_speed(self, x, y, th, v, w) -> (float, float, float):
         incr_s = v * self.polling_period
         incr_th = w * self.polling_period
         incr_x = incr_s * math.cos(th + (incr_th / 2))
