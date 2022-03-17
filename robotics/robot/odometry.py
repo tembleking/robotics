@@ -24,6 +24,10 @@ class Odometry:
     def start(self):
         self.inner_process.start()
 
+    def stop(self):
+        self.finished.value = True
+        self.inner_process.join()
+
     def read_speed(self):
         left_angle = self.left_motor.get_last_angle()
         left_speed = left_angle / self.polling_period
