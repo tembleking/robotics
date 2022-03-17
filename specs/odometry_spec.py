@@ -73,6 +73,7 @@ with description('Odometry', 'unit') as self:
             odometry.start()
 
             time.sleep(1)
+            odometry.stop()
 
             location = odometry.location()
             assert_that(location.origin.x, is_(close_to(0.2312, 0.01)))
