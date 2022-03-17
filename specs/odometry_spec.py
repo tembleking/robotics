@@ -75,6 +75,6 @@ with description('Odometry', 'unit') as self:
             time.sleep(1)
 
             location = odometry.location()
-            assert_that(location.origin.x, is_(close_to(0.2312, 0.0001)))
+            assert_that(location.origin.x, is_(close_to(0.2312, 0.01)))
             assert_that(location.origin.y, is_(0))
             assert_that(location.angle_radians(), is_(0))
