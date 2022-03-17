@@ -1,6 +1,8 @@
+import math
 import time
+from multiprocessing import Lock, Process, Value
 
-from robotics.geometry import Location
+from robotics.geometry import Location, Point
 import numpy as np
 
 
@@ -11,9 +13,16 @@ class Odometry:
         self.polling_period = polling_period
         self.wheel_radius = wheel_radius
         self.axis_length = axis_length
+        self.location_lock = Lock()
+        self.finished = Value('b')
+        self.finished.value = False
+        self.inner_process = Process(target=self._update)
+        self.x = Value('f')
+        self.y = Value('f')
+        self.th = Value('f')
 
     def start(self):
-        pass
+        self.inner_process.start()
 
     def read_speed(self):
         left_angle = self.left_motor.get_last_angle()
@@ -31,15 +40,27 @@ class Odometry:
 
     def _update(self):
         while not self.finished.value:
-            # current processor time in a floating point value, in seconds
-            initial_time = time.clock()
+            initial_time = time.time()
 
             # Read from the motors
             v, w = self.read_speed()
             # Update the Location
+            with self.location_lock:
+                # TODO: We could calculate the new location outside of the lock and then assign it
+                self.x.value, self.y.value, self.th.value = self.get_new_location_from_speed(self.x.value, self.y.value,
+                                                                                             self.th.value, v, w)
 
-            end_time = time.clock()
+            end_time = time.time()
             time.sleep(self.polling_period - (end_time - initial_time))
 
     def location(self) -> Location:
-        pass
+        with self.location_lock:
+            return Location.from_angle_radians(Point(self.x.value, self.y.value), self.th.value)
+
+    def get_new_location_from_speed(self, x, y, th, v, w) -> (float, float, float):
+        incr_s = v * self.polling_period
+        incr_th = w * self.polling_period
+        incr_x = incr_s * math.cos(th + (incr_th / 2))
+        incr_y = incr_s * math.sin(th + (incr_th / 2))
+
+        return incr_x + x, incr_y + y, incr_th + th
