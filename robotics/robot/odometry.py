@@ -42,6 +42,10 @@ class Odometry:
         result = transformation_matrix.dot(np.matrix([[right_speed], [left_speed]]))
         return result[0, 0], result[1, 0]
 
+    def location(self) -> Location:
+        with self.location_lock:
+            return Location.from_angle_radians(Point(self.x.value, self.y.value), self.th.value)
+
     def __update(self):
         while not self.finished.value:
             initial_time = time.time()
@@ -56,10 +60,6 @@ class Odometry:
 
             end_time = time.time()
             time.sleep(self.polling_period - (end_time - initial_time))
-
-    def location(self) -> Location:
-        with self.location_lock:
-            return Location.from_angle_radians(Point(self.x.value, self.y.value), self.th.value)
 
     def __get_new_location_from_speed(self, x, y, th, v, w) -> (float, float, float):
         incr_s = v * self.polling_period
