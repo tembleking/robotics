@@ -29,11 +29,8 @@ class Odometry:
         self.inner_process.join()
 
     def read_speed(self):
-        left_angle = self.left_motor.get_last_angle()
-        left_speed = left_angle / self.polling_period
-
-        right_angle = self.right_motor.get_last_angle()
-        right_speed = right_angle / self.polling_period
+        left_speed = self.left_motor.get_last_angle() / self.polling_period
+        right_speed = self.right_motor.get_last_angle() / self.polling_period
 
         transformation_matrix = np.matrix([[self.wheel_radius / 2, self.wheel_radius / 2],
                                            [self.wheel_radius / self.axis_length,
@@ -55,8 +52,10 @@ class Odometry:
             # Update the Location
             with self.location_lock:
                 # TODO: We could calculate the new location outside of the lock and then assign it
-                self.x.value, self.y.value, self.th.value = self.__get_new_location_from_speed(self.x.value, self.y.value,
-                                                                                               self.th.value, v, w)
+                self.x.value, self.y.value, self.th.value = self.__get_new_location_from_speed(self.x.value,
+                                                                                               self.y.value,
+                                                                                               self.th.value,
+                                                                                               v, w)
 
             end_time = time.time()
             time.sleep(self.polling_period - (end_time - initial_time))
