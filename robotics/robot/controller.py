@@ -1,32 +1,33 @@
 import math
 import time
 
-from robotics.geometry import Location, Direction
+from robotics.geometry import Direction
 from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 
 
 class Controller:
-    def __init__(self, odometry: Odometry, robot: Robot, polling_period: float):
+    def __init__(self, odometry: Odometry, robot: Robot, polling_period: float, trajectory_generator):
         self.odometry = odometry
         self.robot = robot
         self.polling_period = polling_period
         self.visited_points = []
-
-    def set_next_relative_point_to_visit(self, next_location: Location):
-        self.next_location_to_visit_seen_from_world = next_location
+        self.trajectory_generator = trajectory_generator
 
     def start(self):
-        next_location_from_current_location = self.get_next_location_from_current_location()
-
         while True:
             start = time.time()
-            distance_to_arrive = Direction(next_location_from_current_location.origin.x,
-                                           next_location_from_current_location.origin.y).modulus()
-            angle_to_arrive = next_location_from_current_location.angle_degrees()
+            next_relative_location = self.get_next_relative_location()
+            if next_relative_location is None:
+                print('no next relative location found')
+                return
+
+            distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
+            angle_to_arrive = next_relative_location.angle_degrees()
             has_arrived = distance_to_arrive <= 0.01 and angle_to_arrive <= 2
             if has_arrived:
-                break
+                self.trajectory_generator.mark_point_as_visited()
+                continue
 
             if angle_to_arrive <= 2 and distance_to_arrive > 0.01:
                 self.robot.set_speed(15, 0)
@@ -36,14 +37,17 @@ class Controller:
 
             if distance_to_arrive > 0.01 and angle_to_arrive > 2:
                 self.robot.set_speed(15,
-                                     float('%.3f' % (15 / next_location_from_current_location.radius_of_curvature())))
-            next_location_from_current_location = self.get_next_location_from_current_location()
+                                     float('%.3f' % (15 / next_relative_location.radius_of_curvature())))
+
             time.sleep(self.polling_period - (time.time() - start))
 
-    def get_next_location_from_current_location(self):
+    def get_next_relative_location(self):
+        next_point = self.trajectory_generator.next_absolute_point_to_visit()
+        if next_point is None:
+            return None
+
         current_location_seen_from_world = self.odometry.location()
         self.visited_points.append(current_location_seen_from_world)
         world_seen_from_current_location = current_location_seen_from_world.inverse()
-        next_location_from_current_location = self.next_location_to_visit_seen_from_world.seen_from_other_location(
-            world_seen_from_current_location)
+        next_location_from_current_location = next_point.seen_from_other_location(world_seen_from_current_location)
         return next_location_from_current_location
