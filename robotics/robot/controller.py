@@ -1,4 +1,5 @@
 import math
+import time
 
 from robotics.geometry import Location, Direction
 from robotics.robot.odometry import Odometry
@@ -6,9 +7,10 @@ from robotics.robot.robot import Robot
 
 
 class Controller:
-    def __init__(self, odometry: Odometry, robot: Robot):
+    def __init__(self, odometry: Odometry, robot: Robot, polling_period: float):
         self.odometry = odometry
         self.robot = robot
+        self.polling_period = polling_period
         self.visited_points = []
 
     def set_next_relative_point_to_visit(self, next_location: Location):
@@ -18,6 +20,7 @@ class Controller:
         next_location_from_current_location = self.get_next_location_from_current_location()
 
         while True:
+            start = time.time()
             distance_to_arrive = Direction(next_location_from_current_location.origin.x,
                                            next_location_from_current_location.origin.y).modulus()
             angle_to_arrive = next_location_from_current_location.angle_degrees()
@@ -35,6 +38,7 @@ class Controller:
                 self.robot.set_speed(15,
                                      float('%.3f' % (15 / next_location_from_current_location.radius_of_curvature())))
             next_location_from_current_location = self.get_next_location_from_current_location()
+            time.sleep(self.polling_period - (time.time() - start))
 
     def get_next_location_from_current_location(self):
         current_location_seen_from_world = self.odometry.location()

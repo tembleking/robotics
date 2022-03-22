@@ -21,7 +21,7 @@ with description('controller', 'unit') as self:
         robot = MagicMock()
         robot.set_speed = MagicMock()
 
-        self.controller = Controller(odometry=odometry, robot=robot)
+        self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2)
         self.controller.set_next_relative_point_to_visit(Location.from_angle_degrees(Point(120, 0), 0))
         self.controller.start()
 
@@ -39,7 +39,7 @@ with description('controller', 'unit') as self:
         robot = MagicMock()
         robot.set_speed = MagicMock()
 
-        self.controller = Controller(odometry=odometry, robot=robot)
+        self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2)
         self.controller.set_next_relative_point_to_visit(Location.from_angle_degrees(Point(0, 0), 90))
         self.controller.start()
 
@@ -56,7 +56,7 @@ with description('controller', 'unit') as self:
         robot = MagicMock()
         robot.set_speed = MagicMock()
 
-        self.controller = Controller(odometry=odometry, robot=robot)
+        self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2)
         self.controller.set_next_relative_point_to_visit(Location.from_angle_degrees(Point(0, 40), 180))
         self.controller.start()
 
@@ -77,7 +77,7 @@ with description('controller', 'unit') as self:
         robot = MagicMock()
         robot.set_speed = MagicMock()
 
-        self.controller = Controller(odometry=odometry, robot=robot)
+        self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2)
         self.controller.set_next_relative_point_to_visit(Location.from_angle_degrees(Point(120, 0), 0))
         self.controller.start()
         expect(self.controller.visited_points).to(equal([
