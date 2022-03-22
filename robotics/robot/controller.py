@@ -9,6 +9,7 @@ class Controller:
     def __init__(self, odometry: Odometry, robot: Robot):
         self.odometry = odometry
         self.robot = robot
+        self.visited_points = []
 
     def set_next_relative_point_to_visit(self, next_location: Location):
         self.next_location_to_visit_seen_from_world = next_location
@@ -37,6 +38,7 @@ class Controller:
 
     def get_next_location_from_current_location(self):
         current_location_seen_from_world = self.odometry.location()
+        self.visited_points.append(current_location_seen_from_world)
         world_seen_from_current_location = current_location_seen_from_world.inverse()
         next_location_from_current_location = self.next_location_to_visit_seen_from_world.seen_from_other_location(
             world_seen_from_current_location)
