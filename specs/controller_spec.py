@@ -35,13 +35,16 @@ with description('controller', 'unit') as self:
         ]
         robot = MagicMock()
         robot.set_speed = MagicMock()
-        trajectory_generator = FakeTrajectoryGenerator([Location.from_angle_degrees(Point(120, 0), 0)])
+        trajectory_generator = FakeTrajectoryGenerator([
+            Location.from_angle_degrees(Point(40, 0), 0),
+            Location.from_angle_degrees(Point(120, 0), 0),
+        ])
         self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2,
                                      trajectory_generator=trajectory_generator)
         self.controller.start()
 
         robot.set_speed.assert_called_with(15, 0)
-        expect(robot.set_speed.call_count).to(equal(6))
+        expect(robot.set_speed.call_count).to(equal(5))
 
     with it('turns around'):
         odometry = MagicMock()
