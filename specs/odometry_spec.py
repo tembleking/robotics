@@ -110,8 +110,8 @@ with description('Odometry', 'unit') as self:
             time.sleep(1)
             odometry.stop()
             location = odometry.location()
-            assert_that(location.origin.x, is_(close_to(0, 0.00001)))
-            assert_that(location.origin.y, is_(close_to(0, 0.00001)))
+            assert_that(location.origin.x, is_(close_to(0, 0.001)))
+            assert_that(location.origin.y, is_(close_to(0, 0.001)))
             assert_that(location.angle_radians(), is_(close_to(-2.3965, 0.001)))
 
         with it('tells us the odometry position when it turns an arc'):
@@ -127,6 +127,6 @@ with description('Odometry', 'unit') as self:
             time.sleep(1)
             odometry.stop()
             location = odometry.location()
-            assert_that(location.origin.x, is_(close_to(0.1276, 0.0001)))
-            assert_that(location.origin.y, is_(close_to(0.0841, 0.0001)))
+            assert_that(location.origin.x, is_(close_to(0.1276, 0.001)))
+            assert_that(location.origin.y, is_(close_to(0.0841, 0.001)))
             assert_that(location.angle_radians(), is_(close_to(1.1659, 0.001)))
