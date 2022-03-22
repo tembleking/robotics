@@ -20,7 +20,7 @@ with description('Odometry', 'unit') as self:
 
             v, w = odometry.read_speed()
             assert_that(v, is_(close_to(0.2312, 0.0001)))
-            assert_that(w, is_(0))
+            assert_that(w, is_(close_to(0, 0.0001)))
 
         with it('tells us the odometry speed for a turn to the right'):
             left_motor = MagicMock()
@@ -32,7 +32,7 @@ with description('Odometry', 'unit') as self:
                                 wheel_radius=0.0265, axis_length=0.119)
 
             v, w = odometry.read_speed()
-            assert_that(v, is_(0))
+            assert_that(v, is_(close_to(0, 0.0001)))
             assert_that(w, is_(close_to(-3.8866, 0.0001)))
 
         with it('tells us the odometry speed for a turn to the left'):
@@ -45,7 +45,7 @@ with description('Odometry', 'unit') as self:
                                 wheel_radius=0.0265, axis_length=0.119)
 
             v, w = odometry.read_speed()
-            assert_that(v, is_(0))
+            assert_that(v, is_(close_to(0, 0.0001)))
             assert_that(w, is_(close_to(3.8866, 0.0001)))
 
         with it('tells us the odometry speed for an arc'):
@@ -77,8 +77,8 @@ with description('Odometry', 'unit') as self:
 
             location = odometry.location()
             assert_that(location.origin.x, is_(close_to(0.2312, 0.01)))
-            assert_that(location.origin.y, is_(0))
-            assert_that(location.angle_radians(), is_(0))
+            assert_that(location.origin.y, is_(close_to(0, 0.0001)))
+            assert_that(location.angle_radians(), is_(close_to(0, 0.0001)))
 
         with it('tells us the odometry position when it spins to the right'):
             left_motor = MagicMock()
