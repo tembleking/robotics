@@ -43,7 +43,7 @@ with description('controller', 'unit') as self:
         self.controller.set_next_relative_point_to_visit(Location.from_angle_degrees(Point(0, 0), 90))
         self.controller.start()
 
-        robot.set_speed.assert_called_with(0, math.pi / 2)
+        robot.set_speed.assert_called_with(0, 1.571)
         expect(robot.set_speed.call_count).to(equal(3))
 
     with it('describes an arc to arrive to the destination'):

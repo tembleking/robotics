@@ -28,10 +28,11 @@ class Controller:
                 self.robot.set_speed(15, 0)
 
             if distance_to_arrive <= 0.01 and angle_to_arrive > 2:
-                self.robot.set_speed(0, math.pi / 2)
+                self.robot.set_speed(0, float('%.3f' % (math.pi / 2)))
 
             if distance_to_arrive > 0.01 and angle_to_arrive > 2:
-                self.robot.set_speed(15, 15/next_location_from_current_location.radius_of_curvature())
+                self.robot.set_speed(15,
+                                     float('%.3f' % (15 / next_location_from_current_location.radius_of_curvature())))
             next_location_from_current_location = self.get_next_location_from_current_location()
 
     def get_next_location_from_current_location(self):
