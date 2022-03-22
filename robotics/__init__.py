@@ -20,12 +20,12 @@ def right_wheel(BP: brickpi3.BrickPi3) -> Motor:
     return Motor(BP, right_wheel_port)
 
 
-def controller(BP: brickpi3.BrickPi3):
+def controller(BP: brickpi3.BrickPi3, trajectory: list):
     return Controller(
         odometry=odometry(BP),
         robot=robot(BP),
         polling_period=0.2,
-        trajectory_generator=trajectory_generator(),
+        trajectory_generator=trajectory_generator(trajectory),
     )
 
 
@@ -49,10 +49,35 @@ def robot(BP: brickpi3.BrickPi3):
     )
 
 
-def trajectory_generator():
-    return TrajectoryGenerator([
+def trajectory_generator(trajectory: list):
+    return TrajectoryGenerator(trajectory)
+
+
+def square_trajectory():
+    return [
+        Location.from_angle_degrees(Point(0.8, 0), 0),
+        Location.from_angle_degrees(Point(0.8, 0), 90),
+        Location.from_angle_degrees(Point(0.8, 1.2), 90),
+        Location.from_angle_degrees(Point(0.8, 1.2), 180),
+        Location.from_angle_degrees(Point(0, 1.2), 180),
+        Location.from_angle_degrees(Point(0, 1.2), -90),
+        Location.from_angle_degrees(Point(0, 0), -90),
         Location.from_angle_degrees(Point(0, 0), 0),
-    ])
+    ]
+
+
+def eight_trajectory():
+    return [
+        Location.from_angle_degrees(Point(0, 0), -90),
+        Location.from_angle_degrees(Point(0, 0.8), 90),
+        Location.from_angle_degrees(Point(0, 1.6), -90),
+        Location.from_angle_degrees(Point(0, 0.8), 90),
+        Location.from_angle_degrees(Point(0, 0), -90),
+    ]
+
+
+def wheels_trajectory():
+    return []
 
 
 def dump_visited_points_to_csv_file(visited_points: [Location], file_name):
@@ -65,7 +90,7 @@ def dump_visited_points_to_csv_file(visited_points: [Location], file_name):
 if __name__ == '__main__':
     BP = brickpi3.BrickPi3()
 
-    ctrl = controller(BP)
+    ctrl = controller(BP, trajectory=square_trajectory())
     ctrl.start()
 
     dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points.csv')
