@@ -112,7 +112,7 @@ with description('Odometry', 'unit') as self:
             location = odometry.location()
             assert_that(location.origin.x, is_(close_to(0, 0.001)))
             assert_that(location.origin.y, is_(close_to(0, 0.001)))
-            assert_that(location.angle_radians(), is_(close_to(-2.3965, 0.001)))
+            assert_that(location.angle_radians(), is_(close_to(-2.4353, 0.001)))
 
         with it('tells us the odometry position when it turns an arc'):
             left_motor = MagicMock()
@@ -128,5 +128,5 @@ with description('Odometry', 'unit') as self:
             odometry.stop()
             location = odometry.location()
             assert_that(location.origin.x, is_(close_to(0.1276, 0.001)))
-            assert_that(location.origin.y, is_(close_to(0.0841, 0.001)))
-            assert_that(location.angle_radians(), is_(close_to(1.1659, 0.001)))
+            assert_that(location.origin.y, is_(close_to(0.0826, 0.001)))
+            assert_that(location.angle_radians(), is_(close_to(1.1543, 0.001)))

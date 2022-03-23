@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 import math
 
-from expects import expect, equal
+from hamcrest import assert_that, is_
 from mamba import description, it
 from robotics.geometry import Location, Point
 from robotics.robot.controller import Controller
@@ -30,7 +30,7 @@ with description('controller', 'unit') as self:
         self.controller.start()
 
         robot.set_speed.assert_called_with(15, 0)
-        expect(robot.set_speed.call_count).to(equal(5))
+        assert_that(robot.set_speed.call_count, is_(5))
 
     with it('turns around'):
         odometry = MagicMock()
@@ -49,7 +49,7 @@ with description('controller', 'unit') as self:
         self.controller.start()
 
         robot.set_speed.assert_called_with(0, 1.571)
-        expect(robot.set_speed.call_count).to(equal(3))
+        assert_that(robot.set_speed.call_count, is_(3))
 
     with it('describes an arc to arrive to the destination'):
         odometry = MagicMock()
@@ -67,7 +67,7 @@ with description('controller', 'unit') as self:
         self.controller.start()
 
         robot.set_speed.assert_called_with(15, 15 / 40)
-        expect(robot.set_speed.call_count).to(equal(2))
+        assert_that(robot.set_speed.call_count, is_(2))
 
     with it('stores the locations of the visited points'):
         odometry = MagicMock()
@@ -87,7 +87,7 @@ with description('controller', 'unit') as self:
         self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2,
                                      trajectory_generator=trajectory_generator)
         self.controller.start()
-        expect(self.controller.visited_points).to(equal([
+        assert_that(self.controller.visited_points, is_([
             Location.from_angle_degrees(Point(0, 0), 0),
             Location.from_angle_degrees(Point(20, 0), 0),
             Location.from_angle_degrees(Point(40, 0), 0),
