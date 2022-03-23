@@ -4,7 +4,7 @@ import math
 from hamcrest import assert_that, is_, close_to
 from mamba import description, it
 
-from robotics.geometry import Point, Direction, Location
+from robotics.geometry import Point, Direction, Location, PolarCoordinates
 
 with description('Geometry', 'unit') as self:
     with it('moves the point in the space'):
@@ -158,3 +158,19 @@ with description('Geometry', 'unit') as self:
         b = Point(4, 5)
 
         assert_that(a.distance_to(b), is_(5))
+
+    with it ('returns the correct polar coodinates'):
+        location = Location.from_angle_degrees(Point(-1, -1), 30)
+        polar_location = PolarCoordinates(location)
+
+        assert_that(polar_location.rho, is_(close_to(math.sqrt(2), 0.0000001)))
+        assert_that(polar_location.beta, is_(close_to(math.radians(45) , 0.0000001)))
+        assert_that(polar_location.alpha, is_(close_to(math.radians(15), 0.0000001)))
+
+    with it('returns the correct polar coodinates'):
+        location = Location.from_angle_degrees(Point(1, 1), -150)
+        polar_location = PolarCoordinates(location)
+
+        assert_that(polar_location.rho, is_(close_to(math.sqrt(2), 0.0000001)))
+        assert_that(polar_location.beta, is_(close_to(math.radians(-135) , 0.0000001)))
+        assert_that(polar_location.alpha, is_(close_to(math.radians(15), 0.0000001)))

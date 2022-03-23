@@ -152,3 +152,25 @@ class Location:
 
     def __repr__(self) -> str:
         return 'Location(origin=%s, x_axis=%s, y_axis=%s' % (self.origin, self.x_axis, self.y_axis)
+
+
+class PolarCoordinates:
+    def __init__(self, location: 'Location'):
+        self._rho = math.sqrt(location.origin.x ** 2 + location.origin.y ** 2)
+        self._beta = PolarCoordinates._normalize_radians(math.atan2(location.origin.x, location.origin.y) + math.pi)
+        self._alpha = self._beta - location.angle_radians()
+
+    @property
+    def rho(self):
+        return self._rho
+
+    @property
+    def beta(self):
+        return self._beta
+
+    @property
+    def alpha(self):
+        return self._alpha
+
+    def _normalize_radians(angle: float):
+        return (angle + math.pi) % (2 * math.pi) - math.pi
