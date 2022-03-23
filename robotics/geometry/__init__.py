@@ -174,3 +174,6 @@ class PolarCoordinates:
 
     def _normalize_radians(angle: float):
         return (angle + math.pi) % (2 * math.pi) - math.pi
+
+    def __repr__(self) -> str:
+        return f'PolarCoordinates(rho={self.rho}, beta={self.beta}, alpha={self.alpha})'
