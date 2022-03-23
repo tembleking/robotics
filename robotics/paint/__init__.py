@@ -1,5 +1,6 @@
 from enum import IntEnum
 
+import matplotlib
 import numpy
 
 
@@ -11,6 +12,14 @@ class Size(IntEnum):
 class Color(IntEnum):
     BLACK = 0
     OTHER = 1
+
+
+class MatPlotLibPrinter:
+    def __init__(self):
+        pass
+
+    def print(self, *args):
+        matplotlib.pyplot.plot(*args)
 
 
 class RobotPainter:

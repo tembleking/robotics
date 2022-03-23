@@ -1,6 +1,9 @@
+import matplotlib.pyplot
+
 from robotics.actuators import brickpi3
 from robotics.actuators.motor import Motor
 from robotics.geometry import Location, Point
+from robotics.paint import MatPlotLibPrinter, RobotPainter
 from robotics.robot.controller import Controller
 from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
@@ -87,6 +90,13 @@ def dump_visited_points_to_csv_file(visited_points: [Location], file_name):
             file.write(f'{point.origin.x},{point.origin.y},{point.angle_radians()}\n')
 
 
+def display_visited_points_in_graph(visited_points: list):
+    painter = RobotPainter(MatPlotLibPrinter())
+    for point in visited_points:
+        painter.paint([point.origin.x, point.origin.y, point.angle_radians()])
+    matplotlib.pyplot.show()
+
+
 if __name__ == '__main__':
     BP = brickpi3.BrickPi3()
 
@@ -94,3 +104,4 @@ if __name__ == '__main__':
     ctrl.start()
 
     dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points.csv')
+    display_visited_points_in_graph(ctrl.visited_points)
