@@ -157,7 +157,13 @@ class Location:
 class PolarCoordinates:
     def __init__(self, location: 'Location'):
         self._rho = math.sqrt(location.origin.x ** 2 + location.origin.y ** 2)
-        self._beta = PolarCoordinates._normalize_radians(math.atan2(location.origin.x, location.origin.y) + math.pi)
+        if self._rho == 0:
+            self._beta = 0
+        else:
+            print(location.origin.x, location.origin.y)
+            no_norm = math.atan2(location.origin.y, location.origin.x) + math.pi
+            print(no_norm)
+            self._beta = PolarCoordinates._normalize_radians(no_norm)
         self._alpha = self._beta - location.angle_radians()
 
     @property
