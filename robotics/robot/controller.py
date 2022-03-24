@@ -40,7 +40,7 @@ class Controller:
                 self.robot.set_speed(0.15,
                                      float('%.3f' % (0.15 / next_relative_location.radius_of_curvature())))
 
-            time.sleep(self.polling_period - (time.time() - start))
+            time.sleep(self.polling_period)
 
     def get_next_relative_location(self):
         next_point = self.trajectory_generator.next_absolute_point_to_visit()
