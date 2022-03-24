@@ -81,7 +81,14 @@ def eight_trajectory():
 
 
 def wheels_trajectory():
-    return []
+    return [
+        Location.from_angle_degrees(Point(0, 0), 90),
+        Location.from_angle_degrees(Point(0.17, 0.2), 9.6),
+        Location.from_angle_degrees(Point(1.33, 0.39), 9.6),
+        Location.from_angle_degrees(Point(1.33, -0.39), 90 - 9.6),
+        Location.from_angle_degrees(Point(0.17, -0.2), 90 - 9.6),
+        Location.from_angle_degrees(Point(0, 0), 90),
+    ]
 
 
 def dump_visited_points_to_csv_file(visited_points: [Location], file_name):
