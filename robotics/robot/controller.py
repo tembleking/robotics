@@ -15,11 +15,12 @@ class Controller:
         self.trajectory_generator = trajectory_generator
 
     def start(self):
+        self.odometry.start()
         while True:
             start = time.time()
             next_relative_location = self.get_next_relative_location()
             if next_relative_location is None:
-                print('no next relative location found')
+                self.odometry.stop()
                 return
 
             distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
