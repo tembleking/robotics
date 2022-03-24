@@ -31,14 +31,14 @@ class Controller:
                 continue
 
             if angle_to_arrive <= 2 and distance_to_arrive > 0.01:
-                self.robot.set_speed(15, 0)
+                self.robot.set_speed(0.15, 0)
 
             if distance_to_arrive <= 0.01 and angle_to_arrive > 2:
                 self.robot.set_speed(0, float('%.3f' % (math.pi / 2)))
 
             if distance_to_arrive > 0.01 and angle_to_arrive > 2:
-                self.robot.set_speed(15,
-                                     float('%.3f' % (15 / next_relative_location.radius_of_curvature())))
+                self.robot.set_speed(0.15,
+                                     float('%.3f' % (0.15 / next_relative_location.radius_of_curvature())))
 
             time.sleep(self.polling_period - (time.time() - start))
 
