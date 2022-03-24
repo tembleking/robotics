@@ -120,3 +120,10 @@ def run():
 
     dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_eight.csv')
     #display_visited_points_in_graph(ctrl.visited_points)
+
+    time.sleep(15)
+    ctrl = controller(BP, trajectory=wheels_trajectory())
+    ctrl.start()
+
+    dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_wheel.csv')
+    # display_visited_points_in_graph(ctrl.visited_points)
