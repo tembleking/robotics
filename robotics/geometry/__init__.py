@@ -41,7 +41,7 @@ class _Coordinates:
         return isinstance(o, _Coordinates) and numpy.allclose(self._matrix_coords, o._matrix_coords)
 
     def __repr__(self) -> str:
-        return f'Coordinates(x={self.x}, y={self.y})'
+        return 'Coordinates(x=%s, y=%s)' % (self.x, self.y)
 
 
 class Point(_Coordinates):
@@ -55,7 +55,7 @@ class Point(_Coordinates):
         return Direction(other.x - self.x, other.y - self.y).modulus()
 
     def __repr__(self) -> str:
-        return f'Point(x={self.x}, y={self.y})'
+        return 'Point(x=%s, y=%s)' % (self.x, self.y)
 
     @staticmethod
     def _from_coordinates(coords: '_Coordinates') -> 'Point':
@@ -151,4 +151,4 @@ class Location:
         return isinstance(o, Location) and numpy.allclose(self._matrix_coords, o._matrix_coords)
 
     def __repr__(self) -> str:
-        return f'Location(origin={self.origin}, x_axis={self.x_axis}, y_axis={self.y_axis}'
+        return 'Location(origin=%s, x_axis=%s, y_axis=%s' % (self.origin, self.x_axis, self.y_axis)
