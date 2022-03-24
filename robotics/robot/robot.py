@@ -25,12 +25,3 @@ class Robot:
 
         self.left_motor.set_speed(angular_speed[0, 1])
         self.right_motor.set_speed(angular_speed[0, 0])
-
-    def read_speed(self):
-        pass
-
-    def close_claw(self):
-        pass
-
-    def open_claw(self):
-        pass
