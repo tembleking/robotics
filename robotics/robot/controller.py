@@ -40,7 +40,8 @@ class Controller:
                 self.robot.set_speed(0.15,
                                      float('%.3f' % (0.15 / next_relative_location.radius_of_curvature())))
 
-            sleep_time = self.polling_period - (time.time() - start)
+            end_time = time.time()
+            sleep_time = self.polling_period - (end_time - start)
             if sleep_time > 0:
                 time.sleep(sleep_time)
 
