@@ -21,6 +21,7 @@ class Robot:
         self.claw_motor = claw_motor
 
     def set_speed(self, v, w):
+        print('robot setting speed(v: %s, w: %s)' % (v, w))
         angular_speed = np.dot(self.inverse_control_matrix, np.array([v, w]))
 
         self.left_motor.set_speed(angular_speed[0, 1])

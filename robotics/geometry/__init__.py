@@ -111,6 +111,9 @@ class Location:
     def angle_radians(self):
         return math.atan2(self.x_axis.y, self.x_axis.x)
 
+    def rotate_degrees(self, angle_degrees: float):
+        return Location.from_angle_degrees(self.origin, angle=self.angle_degrees() + angle_degrees)
+
     def angle_degrees(self):
         return math.degrees(self.angle_radians())
 
@@ -151,17 +154,14 @@ class Location:
         return isinstance(o, Location) and numpy.allclose(self._matrix_coords, o._matrix_coords)
 
     def __repr__(self) -> str:
-        return 'Location(origin=%s, x_axis=%s, y_axis=%s' % (self.origin, self.x_axis, self.y_axis)
+        return 'Location(origin=%s, rad=%s, deg=%s)' % (self.origin, self.angle_radians(), self.angle_degrees())
 
 
 class PolarCoordinates:
     def __init__(self, location: 'Location'):
         self._rho = math.sqrt(location.origin.x ** 2 + location.origin.y ** 2)
-        if self._rho == 0:
-            self._beta = 0
-        else:
-            no_norm = math.atan2(location.origin.y, location.origin.x) + math.pi
-            self._beta = PolarCoordinates._normalize_radians(no_norm)
+        no_norm = math.atan2(location.origin.y, location.origin.x) + math.pi
+        self._beta = PolarCoordinates._normalize_radians(no_norm)
         self._alpha = self._beta - location.angle_radians()
 
     @property
@@ -180,4 +180,4 @@ class PolarCoordinates:
         return (angle + math.pi) % (2 * math.pi) - math.pi
 
     def __repr__(self) -> str:
-        return 'PolarCoordinates(rho=%s, beta=%s, alpha=%s)' % self.rho, self.beta, self.alpha
+        return 'PolarCoordinates(rho=%s, beta=%s, alpha=%s)' % (self.rho, self.beta, self.alpha)

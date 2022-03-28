@@ -174,3 +174,12 @@ with description('Geometry', 'unit') as self:
         assert_that(polar_location.rho, is_(close_to(math.sqrt(2), 0.0000001)))
         assert_that(polar_location.beta, is_(close_to(math.radians(-135), 0.0000001)))
         assert_that(polar_location.alpha, is_(close_to(math.radians(15), 0.0000001)))
+
+    with it('returns the correct polar coodinates'):
+        location = Location.from_angle_degrees(Point(-1, -1), -90)
+        # location = Location.from_angle_degrees(Point(1, 1), 90).inverse()
+        polar_location = PolarCoordinates(location)
+
+        assert_that(polar_location.rho, is_(close_to(math.sqrt(2), 0.0000001)))
+        assert_that(polar_location.beta, is_(close_to(math.radians(45), 0.0000001)))
+        assert_that(polar_location.alpha, is_(close_to(math.radians(135), 0.0000001)))

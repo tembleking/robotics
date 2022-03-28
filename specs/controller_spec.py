@@ -32,8 +32,36 @@ with description('controller', 'unit') as self:
                                      k_beta=1)
         self.controller.start()
 
-        robot.set_speed.assert_called_with(0.15, 0)
-        assert_that(robot.set_speed.call_count, is_(5))
+        robot.set_speed.assert_has_calls([call(0.2, 0), call(0, 0)])
+        assert_that(robot.set_speed.call_count, is_(6))
+
+    with it('sends the robot to the next location in a straight line'):
+        odometry = MagicMock()
+        odometry.location.side_effect = [
+            Location.from_angle_degrees(Point(0, 0), 90),
+            Location.from_angle_degrees(Point(0, .2), 90),
+            Location.from_angle_degrees(Point(0, .4), 90),
+            Location.from_angle_degrees(Point(0, .6), 90),
+            Location.from_angle_degrees(Point(0, .8), 90),
+            Location.from_angle_degrees(Point(0, 1), 90),
+            Location.from_angle_degrees(Point(0, 1.2), 90),
+        ]
+        robot = MagicMock()
+        robot.set_speed = MagicMock()
+        trajectory_generator = TrajectoryGenerator([
+            Location.from_angle_degrees(Point(0, 0.4), 90),
+            Location.from_angle_degrees(Point(0, 1.2), 90),
+        ])
+
+        self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2,
+                                     trajectory_generator=trajectory_generator,
+                                     k_rho=1,
+                                     k_alpha=1.2,
+                                     k_beta=1)
+        self.controller.start()
+
+        robot.set_speed.assert_has_calls([call(0.2, 0), call(0, 0)])
+        assert_that(robot.set_speed.call_count, is_(6))
 
     with it('turns around'):
         odometry = MagicMock()
@@ -54,20 +82,20 @@ with description('controller', 'unit') as self:
                                      k_beta=1)
         self.controller.start()
 
-        robot.set_speed.assert_called_with(0, 1.571)
-        assert_that(robot.set_speed.call_count, is_(3))
+        robot.set_speed.assert_has_calls([call(0.0, -4.084), call(0.0, -4.398), call(0.0, -4.712), call(0, 0)])
+        assert_that(robot.set_speed.call_count, is_(4))
 
     with it('describes an arc to arrive to the destination'):
         odometry = MagicMock()
         odometry.location.side_effect = [
-            Location.from_angle_degrees(Point(.40, 0), 90),
-            Location.from_angle_degrees(Point(math.sqrt(2) * 0.40 / 2, math.sqrt(2) * 0.40 / 2), 135),
-            Location.from_angle_degrees(Point(0, .40), 180),
+            Location.from_angle_degrees(Point(0, 0), 0),
+            Location.from_angle_degrees(Point(math.sqrt(2) * 0.40 / 2, math.sqrt(2) * 0.40 / 2), 45),
+            Location.from_angle_degrees(Point(.40, .40), 90),
         ]
         robot = MagicMock()
         robot.set_speed = MagicMock()
 
-        trajectory_generator = TrajectoryGenerator([Location.from_angle_degrees(Point(0, 0.40), 180)])
+        trajectory_generator = TrajectoryGenerator([Location.from_angle_degrees(Point(0.40, 0.40), 90)])
         self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2,
                                      trajectory_generator=trajectory_generator,
                                      k_rho=0.5,
@@ -75,9 +103,8 @@ with description('controller', 'unit') as self:
                                      k_beta=0.6)
         self.controller.start()
 
-        robot.set_speed.assert_called_with(0.15, 15 / 40)
-        robot.set_speed.assert_has_calls([call(0.2, 15 / 40), call(0, 0)])
-        assert_that(robot.set_speed.call_count, is_(2))
+        robot.set_speed.assert_has_calls([call(0.283, -0.0), call(0.083, -0.471), call(0, 0)])
+        assert_that(robot.set_speed.call_count, is_(3))
 
     with it('stores the locations of the visited points'):
         odometry = MagicMock()

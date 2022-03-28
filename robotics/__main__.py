@@ -33,9 +33,9 @@ class Factory:
             robot=self.robot(),
             polling_period=0.2,
             trajectory_generator=self.trajectory_generator(trajectory),
-            k_rho=5,
-            k_alpha=6,
-            k_beta=2,
+            k_rho=0.35,
+            k_alpha=1,
+            k_beta=0.5,
         )
 
     def odometry(self):
@@ -61,11 +61,11 @@ class Factory:
     def trajectory_generator(self, trajectory: list):
         return TrajectoryGenerator(trajectory)
 
+
 def one_point():
     return [
         Location.from_angle_degrees(Point(0.8, 0), 0),
     ]
-
 
 
 def square_trajectory():
@@ -81,12 +81,29 @@ def square_trajectory():
     ]
 
 
+def square_trajectory_without_turns():
+    return [
+        # Location.from_angle_degrees(Point(0.8, 0), 0),
+        Location.from_angle_degrees(Point(0.8, 0), 90),
+        # Location.from_angle_degrees(Point(0.8, 1.2), 90),
+        Location.from_angle_degrees(Point(0.8, 1.2), 180),
+        # Location.from_angle_degrees(Point(0, 1.2), 180),
+        Location.from_angle_degrees(Point(0, 1.2), -90),
+        # Location.from_angle_degrees(Point(0, 0), -90),
+        Location.from_angle_degrees(Point(0, 0), 0),
+    ]
+
+
 def eight_trajectory():
     return [
         Location.from_angle_degrees(Point(0, 0), -90),
-        Location.from_angle_degrees(Point(0, 0.8), 90),
-        Location.from_angle_degrees(Point(0, 1.6), -90),
-        Location.from_angle_degrees(Point(0, 0.8), 90),
+        Location.from_angle_degrees(Point(0.4, -0.4), 0),
+        Location.from_angle_degrees(Point(0.8, 0), 90),
+        Location.from_angle_degrees(Point(1.2, 0.4), 0),
+        Location.from_angle_degrees(Point(1.6, 0), -90),
+        Location.from_angle_degrees(Point(1.2, -0.4), -180),
+        Location.from_angle_degrees(Point(0.8, 0), 90),
+        Location.from_angle_degrees(Point(0.4, 0.4), -180),
         Location.from_angle_degrees(Point(0, 0), -90),
     ]
 
@@ -96,8 +113,9 @@ def wheels_trajectory():
         Location.from_angle_degrees(Point(0, 0), 90),
         Location.from_angle_degrees(Point(0.17, 0.2), 9.6),
         Location.from_angle_degrees(Point(1.33, 0.39), 9.6),
-        Location.from_angle_degrees(Point(1.33, -0.39), 90 - 9.6),
-        Location.from_angle_degrees(Point(0.17, -0.2), 90 - 9.6),
+        Location.from_angle_degrees(Point(1.6, 0), -90),
+        Location.from_angle_degrees(Point(1.33, -0.39), 9.6 - 180),
+        Location.from_angle_degrees(Point(0.17, -0.2), 9.6 - 180),
         Location.from_angle_degrees(Point(0, 0), 90),
     ]
 
@@ -160,6 +178,16 @@ def run():
         print('Waiting 15 seconds until next trajectory')
         time.sleep(15)
 
+        print('Starting square trajectory without turns')
+        ctrl = factory.controller(trajectory=square_trajectory_without_turns())
+        ctrl.start()
+
+        dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_square.csv')
+        # display_visited_points_in_graph(ctrl.visited_points)
+
+        print('Waiting 15 seconds until next trajectory')
+        time.sleep(15)
+
         print('Starting eight trajectory')
         ctrl = factory.controller(trajectory=eight_trajectory())
         ctrl.start()
@@ -178,6 +206,8 @@ def run():
         # display_visited_points_in_graph(ctrl.visited_points)
     except BaseException as e:
         print('captured exception: %s' % e)
+    finally:
         stop_robot(factory)
-        dump_visited_points_to_csv_file(ctrl.visited_points, "latest_run.csv")
-        save_visited_points_in_graph(ctrl.visited_points, trajectory=one_point(), filename="latest_odometry.png")
+        dump_visited_points_to_csv_file(ctrl.visited_points, 'latest_run.csv')
+        save_visited_points_in_graph(ctrl.visited_points, trajectory=wheels_trajectory(),
+                                     filename='latest_odometry.png')

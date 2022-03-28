@@ -5,11 +5,12 @@ from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 
 distance_threshold = 0.05
-angle_threshold = 2
+angle_threshold = 5
 
 
 class Controller:
-    def __init__(self, odometry: Odometry, robot: Robot, polling_period: float, trajectory_generator, k_rho: float, k_alpha: float, k_beta: float):
+    def __init__(self, odometry: Odometry, robot: Robot, polling_period: float, trajectory_generator, k_rho: float,
+                 k_alpha: float, k_beta: float):
         self.odometry = odometry
         self.robot = robot
         self.polling_period = polling_period
@@ -26,10 +27,12 @@ class Controller:
             next_relative_location = self.get_next_relative_location()
             if next_relative_location is None:
                 self.odometry.stop()
+                self.robot.set_speed(0, 0)
                 return
 
-            distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
-            angle_to_arrive = next_relative_location.angle_degrees()
+            distance_to_arrive = abs(
+                Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus())
+            angle_to_arrive = abs(next_relative_location.angle_degrees())
             has_arrived = distance_to_arrive <= distance_threshold and angle_to_arrive <= angle_threshold
             print('distance_to_arrive: %s, angle_to_arrive=%s, has_arrived=%s' % (
                 distance_to_arrive, angle_to_arrive, has_arrived))
@@ -63,3 +66,12 @@ class Controller:
         return round(
             self.k_rho * polar_current_location_from_next_location.rho, 3),\
             round(self.k_alpha * polar_current_location_from_next_location.alpha + self.k_beta * polar_current_location_from_next_location.beta, 3)
+        #
+        # polar_current_location_from_next_location = PolarCoordinates(
+        #     Location.from_angle_radians(Point(-next_relative_location.origin.x, -next_relative_location.origin.y),
+        #                                 -next_relative_location.angle_radians())
+        # )
+        # rho = polar_current_location_from_next_location.rho
+        # alpha = polar_current_location_from_next_location.alpha
+        # beta = polar_current_location_from_next_location.beta
+        # return round(self.k_rho * rho, 3), round(self.k_alpha * alpha + self.k_beta * beta, 3)
