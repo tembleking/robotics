@@ -5,6 +5,9 @@ from robotics.geometry import Direction
 from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 
+distance_threshold = 0.05
+angle_threshold = 2
+
 
 class Controller:
     def __init__(self, odometry: Odometry, robot: Robot, polling_period: float, trajectory_generator):
@@ -25,21 +28,27 @@ class Controller:
 
             distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
             angle_to_arrive = next_relative_location.angle_degrees()
-            has_arrived = distance_to_arrive <= 0.01 and angle_to_arrive <= 2
-            print('distance_to_arrive: %s, angle_to_arrive=%s, has_arrived=%s' % (distance_to_arrive, angle_to_arrive, has_arrived))
+            has_arrived = distance_to_arrive <= distance_threshold and angle_to_arrive <= angle_threshold
+            print('distance_to_arrive: %s, angle_to_arrive=%s, has_arrived=%s' % (
+                distance_to_arrive, angle_to_arrive, has_arrived))
             if has_arrived:
                 self.trajectory_generator.mark_point_as_visited()
                 continue
 
-            if angle_to_arrive <= 2 and distance_to_arrive > 0.01:
-                self.robot.set_speed(0.15, 0)
+            if angle_to_arrive <= angle_threshold and distance_to_arrive > distance_threshold:
+                print('going straight (v: 1, w: 0)')
+                self.robot.set_speed(1, 0)
 
-            if distance_to_arrive <= 0.01 and angle_to_arrive > 2:
-                self.robot.set_speed(0, float('%.3f' % (math.pi / 2)))
+            if distance_to_arrive <= distance_threshold and angle_to_arrive > angle_threshold:
+                w = float('%.3f' % (math.pi / 2))
+                self.robot.set_speed(0, w)
+                print('turning (v: 0, w: %s)' % w)
 
-            if distance_to_arrive > 0.01 and angle_to_arrive > 2:
-                self.robot.set_speed(0.15,
-                                     float('%.3f' % (0.15 / next_relative_location.radius_of_curvature())))
+            if distance_to_arrive > distance_threshold and angle_to_arrive > angle_threshold:
+                w = float('%.3f' % (1 / next_relative_location.radius_of_curvature()))
+                self.robot.set_speed(1,
+                                     w)
+                print('doing an arc (v: 1, w: %s)' % w)
 
             end_time = time.time()
             sleep_time = self.polling_period - (end_time - start)

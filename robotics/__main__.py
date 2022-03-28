@@ -22,10 +22,10 @@ class Factory:
         self._odometry = None
 
     def left_wheel(self) -> Motor:
-        return Motor(self.bp, left_wheel_port)
+        return Motor(self.bp, left_wheel_port, motor_name='left_wheel')
 
     def right_wheel(self) -> Motor:
-        return Motor(self.bp, right_wheel_port)
+        return Motor(self.bp, right_wheel_port, motor_name='right_wheel')
 
     def controller(self, trajectory: list):
         return Controller(
@@ -148,6 +148,6 @@ def run():
 
         dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_wheel.csv')
         # display_visited_points_in_graph(ctrl.visited_points)
-    except Exception as e:
+    except BaseException as e:
         print('captured exception: %s' % e)
         stop_robot(factory)
