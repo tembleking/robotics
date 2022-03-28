@@ -33,6 +33,9 @@ class Factory:
             robot=self.robot(),
             polling_period=0.2,
             trajectory_generator=self.trajectory_generator(trajectory),
+            k_rho=0.1,
+            k_alpha=0.2,
+            k_beta=0.1,
         )
 
     def odometry(self):
