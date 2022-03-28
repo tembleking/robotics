@@ -9,7 +9,7 @@ class Motor:
         self.BP.reset_motor_encoder(connected_port)
 
     def set_speed(self, angular_speed: float):
-        self.BP.set_motor_dps(self.connected_port, angular_speed)
+        self.BP.set_motor_dps(self.connected_port, math.degrees(angular_speed))
 
     def get_last_angle(self) -> float:
         angle = self.BP.get_motor_encoder(self.connected_port)
