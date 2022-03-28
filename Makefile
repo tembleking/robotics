@@ -12,7 +12,7 @@ lint:
 
 push-to-robot:
 	poetry build
-	ssh pi@10.1.31.222 "rm *.whl"
-	scp ./dist/robotics-*.whl pi@10.1.31.222:
-	ssh pi@10.1.31.222 "pip uninstall robotics -y"
-	ssh pi@10.1.31.222 "pip install *.whl"
+	ssh pi@$(shell cat robot_ip) "rm *.whl"
+	scp ./dist/robotics-*.whl pi@$(shell cat robot_ip):
+	ssh pi@$(shell cat robot_ip) "pip uninstall robotics -y"
+	ssh pi@$(shell cat robot_ip) "pip install *.whl"
