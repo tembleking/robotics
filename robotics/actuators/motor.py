@@ -1,3 +1,4 @@
+import math
 from robotics.actuators import brickpi3
 
 
@@ -13,4 +14,4 @@ class Motor:
     def get_last_angle(self) -> float:
         angle = self.BP.get_motor_encoder(self.connected_port)
         self.BP.reset_motor_encoder(self.connected_port)
-        return angle
+        return math.radians(angle)
