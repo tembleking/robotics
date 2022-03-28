@@ -33,9 +33,9 @@ class Factory:
             robot=self.robot(),
             polling_period=0.2,
             trajectory_generator=self.trajectory_generator(trajectory),
-            k_rho=0.1,
-            k_alpha=0.2,
-            k_beta=0.1,
+            k_rho=5,
+            k_alpha=6,
+            k_beta=2,
         )
 
     def odometry(self):
@@ -60,6 +60,12 @@ class Factory:
 
     def trajectory_generator(self, trajectory: list):
         return TrajectoryGenerator(trajectory)
+
+def one_point():
+    return [
+        Location.from_angle_degrees(Point(0.8, 0), 0),
+    ]
+
 
 
 def square_trajectory():
@@ -110,6 +116,15 @@ def display_visited_points_in_graph(visited_points: list):
     matplotlib.pyplot.show()
 
 
+def save_visited_points_in_graph(visited_points: list, trajectory, filename: str):
+    painter = RobotPainter(MatPlotLibPrinter())
+    for point in visited_points:
+        painter.paint([point.origin.x, point.origin.y, point.angle_radians()])
+    for point in trajectory:
+        painter.paint([point.origin.x, point.origin.y, point.angle_radians()])
+    matplotlib.pyplot.savefig(filename)
+
+
 def stop_robot(factory):
     factory.left_wheel().set_speed(0)
     factory.right_wheel().set_speed(0)
@@ -125,6 +140,16 @@ def run():
 
     print('Starting robot')
     try:
+        print('Starting one-point trajectory')
+        ctrl = factory.controller(trajectory=one_point())
+        ctrl.start()
+
+        dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_one_point.csv')
+        # display_visited_points_in_graph(ctrl.visited_points)
+
+        print('Waiting 15 seconds until next trajectory')
+        time.sleep(15)
+
         print('Starting square trajectory')
         ctrl = factory.controller(trajectory=square_trajectory())
         ctrl.start()
@@ -154,3 +179,5 @@ def run():
     except BaseException as e:
         print('captured exception: %s' % e)
         stop_robot(factory)
+        dump_visited_points_to_csv_file(ctrl.visited_points, "latest_run.csv")
+        save_visited_points_in_graph(ctrl.visited_points, trajectory=one_point(), filename="latest_odometry.png")
