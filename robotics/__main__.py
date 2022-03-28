@@ -16,45 +16,47 @@ left_wheel_port = brickpi3.BrickPi3.PORT_B
 right_wheel_port = brickpi3.BrickPi3.PORT_A
 
 
-def left_wheel(BP: brickpi3.BrickPi3) -> Motor:
-    return Motor(BP, left_wheel_port)
+class Factory:
+    def __init__(self, BP: brickpi3.BrickPi3):
+        self.bp = BP
+        self._odometry = None
 
+    def left_wheel(self) -> Motor:
+        return Motor(self.bp, left_wheel_port)
 
-def right_wheel(BP: brickpi3.BrickPi3) -> Motor:
-    return Motor(BP, right_wheel_port)
+    def right_wheel(self) -> Motor:
+        return Motor(self.bp, right_wheel_port)
 
+    def controller(self, trajectory: list):
+        return Controller(
+            odometry=self.odometry(),
+            robot=self.robot(),
+            polling_period=0.2,
+            trajectory_generator=self.trajectory_generator(trajectory),
+        )
 
-def controller(BP: brickpi3.BrickPi3, trajectory: list):
-    return Controller(
-        odometry=odometry(BP),
-        robot=robot(BP),
-        polling_period=0.2,
-        trajectory_generator=trajectory_generator(trajectory),
-    )
+    def odometry(self):
+        if self._odometry is None:
+            self._odometry = Odometry(
+                left_motor=self.left_wheel(),
+                right_motor=self.right_wheel(),
+                polling_period=0.01,
+                wheel_radius=wheel_radius,
+                axis_length=axis_length,
+            )
+        return self._odometry
 
+    def robot(self):
+        return Robot(
+            left_motor=self.left_wheel(),
+            right_motor=self.right_wheel(),
+            claw_motor=None,
+            wheel_radius=wheel_radius,
+            axis_length=axis_length,
+        )
 
-def odometry(BP: brickpi3.BrickPi3):
-    return Odometry(
-        left_motor=left_wheel(BP),
-        right_motor=right_wheel(BP),
-        polling_period=0.01,
-        wheel_radius=wheel_radius,
-        axis_length=axis_length,
-    )
-
-
-def robot(BP: brickpi3.BrickPi3):
-    return Robot(
-        left_motor=left_wheel(BP),
-        right_motor=right_wheel(BP),
-        claw_motor=None,
-        wheel_radius=wheel_radius,
-        axis_length=axis_length,
-    )
-
-
-def trajectory_generator(trajectory: list):
-    return TrajectoryGenerator(trajectory)
+    def trajectory_generator(self, trajectory: list):
+        return TrajectoryGenerator(trajectory)
 
 
 def square_trajectory():
@@ -105,34 +107,39 @@ def display_visited_points_in_graph(visited_points: list):
     matplotlib.pyplot.show()
 
 
-def stopMotors(BP):
-    left_wheel(BP).set_speed(0)
-    right_wheel(BP).set_speed(0)
+def stop_robot(factory):
+    factory.left_wheel().set_speed(0)
+    factory.right_wheel().set_speed(0)
+    try:
+        factory.odometry().stop()
+    except Exception as ex:
+        print('exception captured while stopping odometry: %s' % ex)
 
 
 def run():
-    try:
-        BP = brickpi3.BrickPi3()
+    BP = brickpi3.BrickPi3()
+    factory = Factory(BP)
 
-        ctrl = controller(BP, trajectory=square_trajectory())
+    try:
+        ctrl = factory.controller(trajectory=square_trajectory())
         ctrl.start()
 
         dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_square.csv')
         # display_visited_points_in_graph(ctrl.visited_points)
 
         time.sleep(15)
-        ctrl = controller(BP, trajectory=eight_trajectory())
+        ctrl = factory.controller(trajectory=eight_trajectory())
         ctrl.start()
 
         dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_eight.csv')
         # display_visited_points_in_graph(ctrl.visited_points)
 
         time.sleep(15)
-        ctrl = controller(BP, trajectory=wheels_trajectory())
+        ctrl = factory.controller(trajectory=wheels_trajectory())
         ctrl.start()
 
         dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_wheel.csv')
         # display_visited_points_in_graph(ctrl.visited_points)
     except Exception as e:
-        print('captured exception: ' % e)
-        stopMotors(BP)
+        print('captured exception: %s' % e)
+        stop_robot(factory)
