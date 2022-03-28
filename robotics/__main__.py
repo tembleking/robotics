@@ -122,20 +122,27 @@ def run():
 
     print('Starting robot')
     try:
+        print('Starting square trajectory')
         ctrl = factory.controller(trajectory=square_trajectory())
         ctrl.start()
 
         dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_square.csv')
         # display_visited_points_in_graph(ctrl.visited_points)
 
+        print('Waiting 15 seconds until next trajectory')
         time.sleep(15)
+
+        print('Starting eight trajectory')
         ctrl = factory.controller(trajectory=eight_trajectory())
         ctrl.start()
 
         dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_eight.csv')
         # display_visited_points_in_graph(ctrl.visited_points)
 
+        print('Waiting 15 seconds until next trajectory')
         time.sleep(15)
+
+        print('Starting wheels trajectory')
         ctrl = factory.controller(trajectory=wheels_trajectory())
         ctrl.start()
 
