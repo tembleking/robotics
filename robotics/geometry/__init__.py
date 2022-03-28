@@ -160,9 +160,7 @@ class PolarCoordinates:
         if self._rho == 0:
             self._beta = 0
         else:
-            print(location.origin.x, location.origin.y)
             no_norm = math.atan2(location.origin.y, location.origin.x) + math.pi
-            print(no_norm)
             self._beta = PolarCoordinates._normalize_radians(no_norm)
         self._alpha = self._beta - location.angle_radians()
 
@@ -182,4 +180,4 @@ class PolarCoordinates:
         return (angle + math.pi) % (2 * math.pi) - math.pi
 
     def __repr__(self) -> str:
-        return f'PolarCoordinates(rho={self.rho}, beta={self.beta}, alpha={self.alpha})'
+        return 'PolarCoordinates(rho=%s, beta=%s, alpha=%s)' % self.rho, self.beta, self.alpha

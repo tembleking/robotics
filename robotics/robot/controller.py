@@ -1,7 +1,6 @@
-import math
 import time
 
-from robotics.geometry import Direction
+from robotics.geometry import Direction, Location, PolarCoordinates
 from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 
@@ -10,7 +9,7 @@ angle_threshold = 2
 
 
 class Controller:
-    def __init__(self, odometry: Odometry, robot: Robot, polling_period: float, trajectory_generator):
+    def __init__(self, odometry: Odometry, robot: Robot, polling_period: float, trajectory_generator, k_rho: float, k_alpha: float, k_beta: float):
         self.odometry = odometry
         self.robot = robot
         self.polling_period = polling_period
@@ -61,5 +60,6 @@ class Controller:
     def get_next_velocities(self, next_relative_location: Location):
         current_location_from_next_location = next_relative_location.inverse()
         polar_current_location_from_next_location = PolarCoordinates(current_location_from_next_location)
-        print(polar_current_location_from_next_location)
-        return round(self.k_rho * polar_current_location_from_next_location.rho,3), round(self.k_alpha * polar_current_location_from_next_location.alpha + self.k_beta * polar_current_location_from_next_location.beta, 3)
+        return round(
+            self.k_rho * polar_current_location_from_next_location.rho, 3),\
+            round(self.k_alpha * polar_current_location_from_next_location.alpha + self.k_beta * polar_current_location_from_next_location.beta, 3)
