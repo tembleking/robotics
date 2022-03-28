@@ -10,7 +10,7 @@ from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 from robotics.robot.trajectory_generator import TrajectoryGenerator
 
-wheel_radius = 0.025 
+wheel_radius = 0.025
 axis_length = 0.119
 left_wheel_port = brickpi3.BrickPi3.PORT_B
 right_wheel_port = brickpi3.BrickPi3.PORT_A
@@ -105,25 +105,34 @@ def display_visited_points_in_graph(visited_points: list):
     matplotlib.pyplot.show()
 
 
+def stopMotors(BP):
+    left_wheel(BP).set_speed(0)
+    right_wheel(BP).set_speed(0)
+
+
 def run():
-    BP = brickpi3.BrickPi3()
+    try:
+        BP = brickpi3.BrickPi3()
 
-    ctrl = controller(BP, trajectory=square_trajectory())
-    ctrl.start()
+        ctrl = controller(BP, trajectory=square_trajectory())
+        ctrl.start()
 
-    dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_square.csv')
-    #display_visited_points_in_graph(ctrl.visited_points)
+        dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_square.csv')
+        # display_visited_points_in_graph(ctrl.visited_points)
 
-    time.sleep(15)
-    ctrl = controller(BP, trajectory=eight_trajectory())
-    ctrl.start()
+        time.sleep(15)
+        ctrl = controller(BP, trajectory=eight_trajectory())
+        ctrl.start()
 
-    dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_eight.csv')
-    #display_visited_points_in_graph(ctrl.visited_points)
+        dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_eight.csv')
+        # display_visited_points_in_graph(ctrl.visited_points)
 
-    time.sleep(15)
-    ctrl = controller(BP, trajectory=wheels_trajectory())
-    ctrl.start()
+        time.sleep(15)
+        ctrl = controller(BP, trajectory=wheels_trajectory())
+        ctrl.start()
 
-    dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_wheel.csv')
-    # display_visited_points_in_graph(ctrl.visited_points)
+        dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_wheel.csv')
+        # display_visited_points_in_graph(ctrl.visited_points)
+    except Exception as e:
+        print('captured exception: ' % e)
+        stopMotors(BP)
