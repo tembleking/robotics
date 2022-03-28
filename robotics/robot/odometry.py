@@ -58,7 +58,9 @@ class Odometry:
                                                                                                v, w)
 
             end_time = time.time()
-            time.sleep(self.polling_period - (end_time - initial_time))
+            sleep_time = self.polling_period - (end_time - initial_time)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
     def __get_new_location_from_speed(self, x, y, th, v, w) -> (float, float, float):
         distance_increment = v * self.polling_period
