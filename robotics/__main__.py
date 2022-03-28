@@ -120,6 +120,7 @@ def run():
     BP = brickpi3.BrickPi3()
     factory = Factory(BP)
 
+    print('Starting robot')
     try:
         ctrl = factory.controller(trajectory=square_trajectory())
         ctrl.start()

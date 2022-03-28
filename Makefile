@@ -25,5 +25,8 @@ get-robot-ip:
 		"ssh -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no pi@% 'echo %' || :" \
 		2>/dev/null > robot_ip
 
-run: push-to-robot
-	ssh pi@$(shell cat robot_ip) "robot"
+run:
+	ssh pi@$(shell cat robot_ip) "bash -c '/home/pi/.local/bin/robot'"
+
+test-ruedas:
+	ssh pi@$(shell cat robot_ip) "python test_giro.py"
