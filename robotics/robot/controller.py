@@ -26,6 +26,7 @@ class Controller:
             distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
             angle_to_arrive = next_relative_location.angle_degrees()
             has_arrived = distance_to_arrive <= 0.01 and angle_to_arrive <= 2
+            print('distance_to_arrive: %s, angle_to_arrive=%s, has_arrived=%s' % (distance_to_arrive, angle_to_arrive, has_arrived))
             if has_arrived:
                 self.trajectory_generator.mark_point_as_visited()
                 continue
