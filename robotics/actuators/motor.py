@@ -5,6 +5,7 @@ class Motor:
     def __init__(self, BP: brickpi3.BrickPi3, connected_port: int):
         self.BP = BP
         self.connected_port = connected_port
+        self.BP.reset_motor_encoder(connected_port)
 
     def set_speed(self, angular_speed: float):
         self.BP.set_motor_dps(self.connected_port, angular_speed)
