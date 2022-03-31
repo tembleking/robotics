@@ -66,12 +66,3 @@ class Controller:
         return round(
             self.k_rho * polar_current_location_from_next_location.rho, 3),\
             round(self.k_alpha * polar_current_location_from_next_location.alpha + self.k_beta * polar_current_location_from_next_location.beta, 3)
-        #
-        # polar_current_location_from_next_location = PolarCoordinates(
-        #     Location.from_angle_radians(Point(-next_relative_location.origin.x, -next_relative_location.origin.y),
-        #                                 -next_relative_location.angle_radians())
-        # )
-        # rho = polar_current_location_from_next_location.rho
-        # alpha = polar_current_location_from_next_location.alpha
-        # beta = polar_current_location_from_next_location.beta
-        # return round(self.k_rho * rho, 3), round(self.k_alpha * alpha + self.k_beta * beta, 3)
