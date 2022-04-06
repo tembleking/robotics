@@ -1,5 +1,6 @@
 import matplotlib.pyplot
 import time
+import cv2
 
 from robotics.actuators import brickpi3
 from robotics.actuators.motor import Motor
@@ -9,6 +10,8 @@ from robotics.robot.controller import Controller
 from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 from robotics.robot.trajectory_generator import TrajectoryGenerator
+from robotics.robot.ball_following_speed_generator import BallFollowingSpeedGenerator
+from robotics.sensors.camera import Camera
 
 wheel_radius = 0.025
 axis_length = 0.119
@@ -31,8 +34,9 @@ class Factory:
         return Controller(
             odometry=self.odometry(),
             robot=self.robot(),
-            polling_period=0.2,
+            polling_period=0.05,
             trajectory_generator=self.trajectory_generator(trajectory),
+            ball_following_speed_generator=self.ball_following_speed_generator(),
             k_rho=0.35,
             k_alpha=1,
             k_beta=0.5,
@@ -61,10 +65,22 @@ class Factory:
     def trajectory_generator(self, trajectory: list):
         return TrajectoryGenerator(trajectory)
 
+    def camera(self):
+        return Camera(cv2.VideoCapture(0))
+
+    def ball_following_speed_generator(self):
+        return BallFollowingSpeedGenerator(
+            camera=self.camera(),
+            area_goal=214,
+            distance_goal=267,
+            distance_damping=0.001,
+            area_damping=0.001,
+        )
+
 
 def one_point():
     return [
-        Location.from_angle_degrees(Point(0.8, 0), 0),
+        Location.from_angle_degrees(Point(5, 0), 0),
     ]
 
 
