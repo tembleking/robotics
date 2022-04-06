@@ -12,7 +12,7 @@ class Camera:
         params = cv2.SimpleBlobDetector_Params()
         params.filterByArea = True
         params.minArea = 200
-        params.maxArea = 60_000
+        params.maxArea = 60000
         self.blob_detector = cv2.SimpleBlobDetector_create(params)
         self.mask_lower_min_hsv = np.array([0, 125, 0])
         self.mask_lower_max_hsv = np.array([10, 255, 255])
