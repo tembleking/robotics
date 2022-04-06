@@ -10,12 +10,13 @@ angle_threshold = 5
 
 class Controller:
     def __init__(self, odometry: Odometry, robot: Robot, polling_period: float, trajectory_generator, k_rho: float,
-                 k_alpha: float, k_beta: float):
+                 k_alpha: float, k_beta: float, ball_following_speed_generator=None):
         self.odometry = odometry
         self.robot = robot
         self.polling_period = polling_period
         self.visited_points = []
         self.trajectory_generator = trajectory_generator
+        self.ball_following_speed_generator = ball_following_speed_generator
         self.k_rho = k_rho
         self.k_alpha = k_alpha
         self.k_beta = k_beta
@@ -24,22 +25,29 @@ class Controller:
         self.odometry.start()
         while True:
             start = time.time()
-            next_relative_location = self.get_next_relative_location()
-            if next_relative_location is None:
-                self.odometry.stop()
-                self.robot.set_speed(0, 0)
-                return
+            if self.ball_following_speed_generator is None:
+                next_relative_location = self.get_next_relative_location()
+                if next_relative_location is None:
+                    self.odometry.stop()
+                    self.robot.set_speed(0, 0)
+                    return
 
-            distance_to_arrive = abs(
-                Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus())
-            angle_to_arrive = abs(next_relative_location.angle_degrees())
-            has_arrived = distance_to_arrive <= distance_threshold and angle_to_arrive <= angle_threshold
-            print('distance_to_arrive: %s, angle_to_arrive=%s, has_arrived=%s' % (
-                distance_to_arrive, angle_to_arrive, has_arrived))
-            if has_arrived:
-                self.trajectory_generator.mark_point_as_visited()
-                continue
-            v, w = self.get_next_velocities(next_relative_location)
+                distance_to_arrive = abs(
+                    Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus())
+                angle_to_arrive = abs(next_relative_location.angle_degrees())
+                has_arrived = distance_to_arrive <= distance_threshold and angle_to_arrive <= angle_threshold
+                print('distance_to_arrive: %s, angle_to_arrive=%s, has_arrived=%s' % (
+                    distance_to_arrive, angle_to_arrive, has_arrived))
+                if has_arrived:
+                    self.trajectory_generator.mark_point_as_visited()
+                    continue
+                v, w = self.get_next_velocities(next_relative_location)
+            else:
+                v, w = self.ball_following_speed_generator.next_speed()
+
+            if abs(v) < 0.01 and abs(w) < 0.03:
+                print('Ball in position')
+                return
             self.robot.set_speed(v, w)
             end_time = time.time()
             sleep_time = self.polling_period - (end_time - start)
@@ -63,6 +71,6 @@ class Controller:
     def get_next_velocities(self, next_relative_location: Location):
         current_location_from_next_location = next_relative_location.inverse()
         polar_current_location_from_next_location = PolarCoordinates(current_location_from_next_location)
-        return round(
-            self.k_rho * polar_current_location_from_next_location.rho, 3),\
-            round(self.k_alpha * polar_current_location_from_next_location.alpha + self.k_beta * polar_current_location_from_next_location.beta, 3)
+        return round(self.k_rho * polar_current_location_from_next_location.rho, 3), round(
+            self.k_alpha * polar_current_location_from_next_location.alpha + self.k_beta * polar_current_location_from_next_location.beta,
+            3)
