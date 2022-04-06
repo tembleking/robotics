@@ -1,11 +1,11 @@
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
+
 import cv2
+import numpy as np
 from hamcrest import assert_that, is_
 from mamba import description, it
-from robotics.geometry import Location, Point
+
 from robotics.sensors.camera import Camera
-import numpy as np
-import matplotlib.pyplot as plt
 
 
 def generate_default_blob_detector_params() -> cv2.SimpleBlobDetector_Params:
@@ -41,11 +41,11 @@ def generate_default_blob_detector_params() -> cv2.SimpleBlobDetector_Params:
 
 
 def load_centered_image() -> np.ndarray:
-    return cv2.imread("fixtures/centered_image.png", cv2.IMREAD_COLOR)
+    return cv2.imread('fixtures/centered_image.png', cv2.IMREAD_COLOR)
 
 
 with description('camera', 'unit') as self:
-    with fit('detects the blob in the image correctly'):
+    with it('detects the blob in the image correctly'):
         camera_sensor = Camera(
             video_capturer=MagicMock(),
             min_light_settings=[0, 124, 0],
