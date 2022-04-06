@@ -3,15 +3,20 @@ import numpy as np
 from typing import List
 from robotics.geometry import Point
 
-class Camera():
 
-    def __init__(self, min_light_settings: np.ndarray,  min_dark_settings: np.ndarray, params: cv2.SimpleBlobDetector_Params):
-        self.video_capturer = cv2.VideoCapture(0)
+class Camera:
+
+    def __init__(self,
+                 video_capturer: cv2.VideoCapture,
+                 min_light_settings: np.ndarray,
+                 min_dark_settings: np.ndarray,
+                 params: cv2.SimpleBlobDetector_Params):
+        self.video_capturer = video_capturer
         self.blob_detector = cv2.SimpleBlobDetector_create(params)
         self.min_light_settings = min_light_settings
         self.min_dark_settings = min_dark_settings
 
-    def get_frame(self) -> np.ndarray:
+    def _get_frame(self) -> np.ndarray:
         ok, frame = self.video_capturer.read()
         if ok:
             return frame
