@@ -17,18 +17,23 @@ wheel_radius = 0.025
 axis_length = 0.119
 left_wheel_port = brickpi3.BrickPi3.PORT_B
 right_wheel_port = brickpi3.BrickPi3.PORT_A
+claw_port = brickpi3.BrickPi3.PORT_C
 
 
 class Factory:
     def __init__(self, BP: brickpi3.BrickPi3):
         self.bp = BP
         self._odometry = None
+        self._camera = None
 
     def left_wheel(self) -> Motor:
         return Motor(self.bp, left_wheel_port, motor_name='left_wheel')
 
     def right_wheel(self) -> Motor:
         return Motor(self.bp, right_wheel_port, motor_name='right_wheel')
+
+    def claw(self) -> Motor:
+        return Motor(self.bp, claw_port, motor_name='claw', motor_limit_dps=60)
 
     def controller(self, trajectory: list):
         return Controller(
@@ -37,6 +42,7 @@ class Factory:
             polling_period=0.05,
             trajectory_generator=self.trajectory_generator(trajectory),
             ball_following_speed_generator=self.ball_following_speed_generator(),
+            camera=self.camera(),
             k_rho=0.35,
             k_alpha=1,
             k_beta=0.5,
@@ -57,7 +63,7 @@ class Factory:
         return Robot(
             left_motor=self.left_wheel(),
             right_motor=self.right_wheel(),
-            claw_motor=None,
+            claw_motor=self.claw(),
             wheel_radius=wheel_radius,
             axis_length=axis_length,
         )
@@ -66,7 +72,11 @@ class Factory:
         return TrajectoryGenerator(trajectory)
 
     def camera(self):
-        return Camera(cv2.VideoCapture(0))
+        if self._camera is None:
+            video_capture = cv2.VideoCapture(0)
+            video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+            self._camera = Camera(video_capture)
+        return self._camera
 
     def ball_following_speed_generator(self):
         return BallFollowingSpeedGenerator(

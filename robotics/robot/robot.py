@@ -26,3 +26,9 @@ class Robot:
 
         self.left_motor.set_speed(angular_speed[0, 1])
         self.right_motor.set_speed(angular_speed[0, 0])
+
+    def open_claws(self):
+        self.claw_motor.set_position(-180)
+
+    def close_claws(self):
+        self.claw_motor.set_position(0)

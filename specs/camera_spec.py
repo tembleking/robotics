@@ -59,3 +59,17 @@ with description('camera', 'unit') as self:
 
         assert_that(blob_point, is_(none()))
         assert_that(blob_area, is_(none()))
+
+    with it('detects if the ball is within the claws'):
+        self.camera_sensor.video_capturer.read.return_value = load_image('ball_in_claws.png')
+
+        ball_in_claws = self.camera_sensor.is_ball_within_claws()
+
+        assert_that(ball_in_claws, is_(True))
+
+    with it('detects if the ball is not within the claws'):
+        self.camera_sensor.video_capturer.read.return_value = load_image('ball_not_found.png')
+
+        ball_in_claws = self.camera_sensor.is_ball_within_claws()
+
+        assert_that(ball_in_claws, is_(False))

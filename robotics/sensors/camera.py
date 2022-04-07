@@ -1,6 +1,8 @@
+from typing import List, Tuple
+
 import cv2
 import numpy as np
-from typing import List, Tuple
+
 from robotics.geometry import Point
 
 
@@ -23,9 +25,10 @@ class Camera:
         ok, frame = self.video_capturer.read()
         if ok:
             return frame
+        return None
 
     def _get_mask(self, frame) -> np.ndarray:
-        # Retrieves a mask for a image that filters the HSV red from hue: [170-180] and [0-10]
+        # Retrieves a mask for an image that filters the HSV red from hue: [170-180] and [0-10]
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         mask_lower = cv2.inRange(hsv, self.mask_lower_min_hsv, self.mask_lower_max_hsv)
         mask_higher = cv2.inRange(hsv, self.mask_higher_min_hsv, self.mask_higher_max_hsv)
@@ -39,6 +42,8 @@ class Camera:
 
     def get_blob_position_and_size(self) -> Tuple[Point, float]:
         frame = self._get_frame()
+        frame = self._get_frame() if frame is None else frame
+        frame = self._get_frame() if frame is None else frame
         keypoints = self._detect_blobs(frame)
         if len(keypoints) == 0:
             return None, None
@@ -49,3 +54,12 @@ class Camera:
                 best_keypoint = keypoint
 
         return Point(best_keypoint.pt[0], best_keypoint.pt[1]), best_keypoint.size
+
+    def is_ball_within_claws(self) -> bool:
+        frame = self._get_frame()
+        frame = self._get_frame() if frame is None else frame
+        frame = self._get_frame() if frame is None else frame
+        mask = self._get_mask(frame)[380:, :360] / 255
+        mean = mask.mean()
+        print('Mean of ball within claws: %s' % mean)
+        return mean > 0.25

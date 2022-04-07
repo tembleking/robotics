@@ -3,6 +3,7 @@ from hamcrest import assert_that, is_, close_to
 from unittest.mock import MagicMock
 from robotics.geometry import Point
 from robotics.robot.ball_following_speed_generator import BallFollowingSpeedGenerator
+
 with description('BallFollowingTrajectoryGenerator', 'unit') as self:
     with it('should rotate to the left to find the ball'):
         camera = MagicMock()
