@@ -235,5 +235,5 @@ def run():
     finally:
         stop_robot(factory)
         dump_visited_points_to_csv_file(ctrl.visited_points, 'latest_run.csv')
-        save_visited_points_in_graph(ctrl.visited_points, trajectory=wheels_trajectory(),
+        save_visited_points_in_graph(ctrl.visited_points, trajectory=Location.from_angle_degrees(Point(0, 0), 0),
                                      filename='latest_odometry.png')

@@ -45,6 +45,8 @@ class Controller:
                 v, w = self.get_next_velocities(next_relative_location)
             else:
                 v, w = self.ball_following_speed_generator.next_speed()
+                current_location_seen_from_world = self.odometry.location()
+                self.visited_points.append(current_location_seen_from_world)
 
             if abs(v) < 0.01 and abs(w) < 0.03:
                 self.robot.set_speed(0, 0)
