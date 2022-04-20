@@ -47,7 +47,7 @@ class Controller:
 
             if abs(v) < 0.01 and abs(w) < 0.03:
                 self.robot.set_speed(0, 0)
-                self.try_retrieve_ball()
+                self.robot.try_retrieve_ball()
                 if self.is_ball_in_claws():
                     self.stop()
                     return
@@ -78,15 +78,6 @@ class Controller:
         return round(self.k_rho * polar_current_location_from_next_location.rho, 3), round(
             self.k_alpha * polar_current_location_from_next_location.alpha + self.k_beta * polar_current_location_from_next_location.beta,
             3)
-
-    def try_retrieve_ball(self):
-        self.robot.open_claws()
-        time.sleep(5)
-        self.robot.set_speed(0.06, 0.01)
-        time.sleep(1.5)
-        self.robot.set_speed(0, 0)
-        self.robot.close_claws()
-        time.sleep(5)
 
     def is_ball_in_claws(self) -> bool:
         if self.camera is None:

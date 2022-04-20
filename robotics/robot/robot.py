@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 
 from robotics.robot.odometry import Odometry
@@ -45,3 +47,12 @@ class Robot:
 
     def location(self):
         self.odometry.location()
+
+    def try_retrieve_ball(self):
+        self.open_claws()
+        time.sleep(5)
+        self.set_speed(0.06, 0.01)
+        time.sleep(1.5)
+        self.set_speed(0, 0)
+        self.close_claws()
+        time.sleep(5)
