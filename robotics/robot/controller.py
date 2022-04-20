@@ -1,7 +1,6 @@
 import time
 
 from robotics.geometry import Direction, Location, PolarCoordinates
-from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 
 distance_threshold = 0.05
@@ -9,9 +8,8 @@ angle_threshold = 5
 
 
 class Controller:
-    def __init__(self, odometry: Odometry, robot: Robot, polling_period: float, trajectory_generator, k_rho: float,
+    def __init__(self, robot: Robot, polling_period: float, trajectory_generator, k_rho: float,
                  k_alpha: float, k_beta: float, ball_following_speed_generator=None, camera=None):
-        self.odometry = odometry
         self.robot = robot
         self.polling_period = polling_period
         self.visited_points = []
@@ -23,8 +21,7 @@ class Controller:
         self.k_beta = k_beta
 
     def start(self):
-        self.odometry.start()
-        # self.camera.start()
+        self.robot.start_odometry()
         while True:
             start = time.time()
             if self.ball_following_speed_generator is None:
@@ -45,7 +42,7 @@ class Controller:
                 v, w = self.get_next_velocities(next_relative_location)
             else:
                 v, w = self.ball_following_speed_generator.next_speed()
-                current_location_seen_from_world = self.odometry.location()
+                current_location_seen_from_world = self.robot.location()
                 self.visited_points.append(current_location_seen_from_world)
 
             if abs(v) < 0.01 and abs(w) < 0.03:
@@ -66,7 +63,7 @@ class Controller:
         if next_point is None:
             return None
 
-        current_location_seen_from_world = self.odometry.location()
+        current_location_seen_from_world = self.robot.location()
         if current_location_seen_from_world is None:
             return None
 
@@ -98,6 +95,5 @@ class Controller:
         return self.camera.is_ball_within_claws()
 
     def stop(self):
-        self.odometry.stop()
-        # self.camera.stop()
+        self.robot.stop_odometry()
         self.robot.set_speed(0, 0)

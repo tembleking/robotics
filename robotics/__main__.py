@@ -37,7 +37,6 @@ class Factory:
 
     def controller(self, trajectory: list):
         return Controller(
-            odometry=self.odometry(),
             robot=self.robot(),
             polling_period=0.05,
             trajectory_generator=self.trajectory_generator(trajectory),
@@ -61,6 +60,7 @@ class Factory:
 
     def robot(self):
         return Robot(
+            odometry=self.odometry(),
             left_motor=self.left_wheel(),
             right_motor=self.right_wheel(),
             claw_motor=self.claw(),

@@ -9,8 +9,9 @@ from robotics.robot.trajectory_generator import TrajectoryGenerator
 
 with description('controller', 'unit') as self:
     with it('sends the robot to the next location in a straight line'):
-        odometry = MagicMock()
-        odometry.location.side_effect = [
+        robot = MagicMock()
+        robot.set_speed = MagicMock()
+        robot.location.side_effect = [
             Location.from_angle_degrees(Point(0, 0), 0),
             Location.from_angle_degrees(Point(0.2, 0), 0),
             Location.from_angle_degrees(Point(0.40, 0), 0),
@@ -19,13 +20,11 @@ with description('controller', 'unit') as self:
             Location.from_angle_degrees(Point(1, 0), 0),
             Location.from_angle_degrees(Point(1.2, 0), 0),
         ]
-        robot = MagicMock()
-        robot.set_speed = MagicMock()
         trajectory_generator = TrajectoryGenerator([
             Location.from_angle_degrees(Point(0.40, 0), 0),
             Location.from_angle_degrees(Point(1.20, 0), 0),
         ])
-        self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2,
+        self.controller = Controller(robot=robot, polling_period=0.2,
                                      trajectory_generator=trajectory_generator,
                                      k_rho=1,
                                      k_alpha=1.2,
@@ -36,8 +35,8 @@ with description('controller', 'unit') as self:
         assert_that(robot.set_speed.call_count, is_(6))
 
     with it('sends the robot to the next location in a straight line'):
-        odometry = MagicMock()
-        odometry.location.side_effect = [
+        robot = MagicMock()
+        robot.location.side_effect = [
             Location.from_angle_degrees(Point(0, 0), 90),
             Location.from_angle_degrees(Point(0, .2), 90),
             Location.from_angle_degrees(Point(0, .4), 90),
@@ -46,14 +45,13 @@ with description('controller', 'unit') as self:
             Location.from_angle_degrees(Point(0, 1), 90),
             Location.from_angle_degrees(Point(0, 1.2), 90),
         ]
-        robot = MagicMock()
         robot.set_speed = MagicMock()
         trajectory_generator = TrajectoryGenerator([
             Location.from_angle_degrees(Point(0, 0.4), 90),
             Location.from_angle_degrees(Point(0, 1.2), 90),
         ])
 
-        self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2,
+        self.controller = Controller(robot=robot, polling_period=0.2,
                                      trajectory_generator=trajectory_generator,
                                      k_rho=1,
                                      k_alpha=1.2,
@@ -64,18 +62,17 @@ with description('controller', 'unit') as self:
         assert_that(robot.set_speed.call_count, is_(6))
 
     with it('turns around'):
-        odometry = MagicMock()
-        odometry.location.side_effect = [
+        robot = MagicMock()
+        robot.location.side_effect = [
             Location.from_angle_degrees(Point(0, 0), 0),
             Location.from_angle_degrees(Point(0, 0), 30),
             Location.from_angle_degrees(Point(0, 0), 60),
             Location.from_angle_degrees(Point(0, 0), 90),
         ]
-        robot = MagicMock()
         robot.set_speed = MagicMock()
 
         trajectory_generator = TrajectoryGenerator([Location.from_angle_degrees(Point(0, 0), 90)])
-        self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2,
+        self.controller = Controller(robot=robot, polling_period=0.2,
                                      trajectory_generator=trajectory_generator,
                                      k_rho=0.5,
                                      k_alpha=0.6,
@@ -86,17 +83,16 @@ with description('controller', 'unit') as self:
         assert_that(robot.set_speed.call_count, is_(4))
 
     with it('describes an arc to arrive to the destination'):
-        odometry = MagicMock()
-        odometry.location.side_effect = [
+        robot = MagicMock()
+        robot.location.side_effect = [
             Location.from_angle_degrees(Point(0, 0), 0),
             Location.from_angle_degrees(Point(math.sqrt(2) * 0.40 / 2, math.sqrt(2) * 0.40 / 2), 45),
             Location.from_angle_degrees(Point(.40, .40), 90),
         ]
-        robot = MagicMock()
         robot.set_speed = MagicMock()
 
         trajectory_generator = TrajectoryGenerator([Location.from_angle_degrees(Point(0.40, 0.40), 90)])
-        self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2,
+        self.controller = Controller(robot=robot, polling_period=0.2,
                                      trajectory_generator=trajectory_generator,
                                      k_rho=0.5,
                                      k_alpha=0.6,
@@ -107,8 +103,8 @@ with description('controller', 'unit') as self:
         assert_that(robot.set_speed.call_count, is_(3))
 
     with it('stores the locations of the visited points'):
-        odometry = MagicMock()
-        odometry.location.side_effect = [
+        robot = MagicMock()
+        robot.location.side_effect = [
             Location.from_angle_degrees(Point(0, 0), 0),
             Location.from_angle_degrees(Point(20, 0), 0),
             Location.from_angle_degrees(Point(40, 0), 0),
@@ -117,11 +113,10 @@ with description('controller', 'unit') as self:
             Location.from_angle_degrees(Point(100, 0), 0),
             Location.from_angle_degrees(Point(120, 0), 0),
         ]
-        robot = MagicMock()
         robot.set_speed = MagicMock()
         trajectory_generator = TrajectoryGenerator([Location.from_angle_degrees(Point(120, 0), 0)])
 
-        self.controller = Controller(odometry=odometry, robot=robot, polling_period=0.2,
+        self.controller = Controller(robot=robot, polling_period=0.2,
                                      trajectory_generator=trajectory_generator,
                                      k_rho=0.5,
                                      k_alpha=0.6,

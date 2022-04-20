@@ -1,13 +1,17 @@
 import numpy as np
 
+from robotics.robot.odometry import Odometry
+
 
 class Robot:
     def __init__(self,
+                 odometry: Odometry,
                  wheel_radius,
                  axis_length,
                  claw_motor,
                  left_motor,
                  right_motor):
+        self.odometry = odometry
         self.wheel_radius = wheel_radius
         self.axis_length = axis_length
         self.direct_control_matrix = np.matrix(
@@ -32,3 +36,12 @@ class Robot:
 
     def close_claws(self):
         self.claw_motor.set_position(0)
+
+    def start_odometry(self):
+        self.odometry.start()
+
+    def stop_odometry(self):
+        self.odometry.stop()
+
+    def location(self):
+        self.odometry.location()

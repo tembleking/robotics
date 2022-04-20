@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 from mamba import describe, context, it, before
 from doublex import Spy, assert_that, called
 from robotics.robot.robot import Robot
@@ -7,6 +9,7 @@ with describe('robot', 'unit') as self:
         self.left_motor = Spy()
         self.right_motor = Spy()
         self.robot = Robot(
+            odometry=MagicMock(),
             left_motor=self.left_motor,
             right_motor=self.right_motor,
             claw_motor=None,
