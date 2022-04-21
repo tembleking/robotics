@@ -1,12 +1,12 @@
 from unittest.mock import MagicMock
 
 from hamcrest import assert_that, is_, close_to
-from mamba import fdescription, it
+from mamba import description, it
 
 from robotics.geometry import Location, Point
 from robotics.robot.trajectory_generator import TrajectoryGenerator
 
-with fdescription('Trajectory Generator', 'unit') as self:
+with description('Trajectory Generator', 'unit') as self:
     with it('returns the next points until they are marked as visited'):
         map = MagicMock()
         map.sizeCell.return_value = 400

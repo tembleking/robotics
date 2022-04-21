@@ -42,9 +42,6 @@ class Factory:
             trajectory_generator=self.trajectory_generator(trajectory),
             ball_following_speed_generator=self.ball_following_speed_generator(),
             camera=self.camera(),
-            k_rho=0.35,
-            k_alpha=1,
-            k_beta=0.5,
         )
 
     def odometry(self):
