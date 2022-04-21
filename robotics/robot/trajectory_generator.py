@@ -13,6 +13,8 @@ class TrajectoryGenerator:
         self._path = self._calculate_path()
 
     def next_absolute_point_to_visit(self) -> Location:
+        if len(self._path) == 0:
+            return None
         return self._path[0]
 
     def _cell_to_point(self, cell_x, cell_y) -> Point:
@@ -21,7 +23,8 @@ class TrajectoryGenerator:
                      cell_y * size_in_meters + size_in_meters / 2)
 
     def mark_point_as_visited(self):
-        self._path.pop(0)
+        if len(self._path) > 0:
+            self._path.pop(0)
 
     def _calculate_path(self):
         location = self.robot.location()
