@@ -5,7 +5,21 @@ from hamcrest import assert_that, is_
 from mamba import description, it
 from robotics.geometry import Location, Point
 from robotics.robot.controller import Controller
-from robotics.robot.trajectory_generator import TrajectoryGenerator
+
+
+class FakeTrajectoryGenerator:
+    def __init__(self, points_to_visit):
+        self.points_to_visit = points_to_visit
+
+    def next_absolute_point_to_visit(self) -> Point:
+        try:
+            return self.points_to_visit[0]
+        except IndexError:
+            return None
+
+    def mark_point_as_visited(self):
+        self.points_to_visit = self.points_to_visit[1:]
+
 
 with description('controller', 'unit') as self:
     with it('sends the robot to the next location in a straight line'):
@@ -20,7 +34,7 @@ with description('controller', 'unit') as self:
             Location.from_angle_degrees(Point(1, 0), 0),
             Location.from_angle_degrees(Point(1.2, 0), 0),
         ]
-        trajectory_generator = TrajectoryGenerator([
+        trajectory_generator = FakeTrajectoryGenerator([
             Location.from_angle_degrees(Point(0.40, 0), 0),
             Location.from_angle_degrees(Point(1.20, 0), 0),
         ])
@@ -46,7 +60,7 @@ with description('controller', 'unit') as self:
             Location.from_angle_degrees(Point(0, 1.2), 90),
         ]
         robot.set_speed = MagicMock()
-        trajectory_generator = TrajectoryGenerator([
+        trajectory_generator = FakeTrajectoryGenerator([
             Location.from_angle_degrees(Point(0, 0.4), 90),
             Location.from_angle_degrees(Point(0, 1.2), 90),
         ])
@@ -71,7 +85,7 @@ with description('controller', 'unit') as self:
         ]
         robot.set_speed = MagicMock()
 
-        trajectory_generator = TrajectoryGenerator([Location.from_angle_degrees(Point(0, 0), 90)])
+        trajectory_generator = FakeTrajectoryGenerator([Location.from_angle_degrees(Point(0, 0), 90)])
         self.controller = Controller(robot=robot, polling_period=0.2,
                                      trajectory_generator=trajectory_generator,
                                      k_rho=0.5,
@@ -91,7 +105,7 @@ with description('controller', 'unit') as self:
         ]
         robot.set_speed = MagicMock()
 
-        trajectory_generator = TrajectoryGenerator([Location.from_angle_degrees(Point(0.40, 0.40), 90)])
+        trajectory_generator = FakeTrajectoryGenerator([Location.from_angle_degrees(Point(0.40, 0.40), 90)])
         self.controller = Controller(robot=robot, polling_period=0.2,
                                      trajectory_generator=trajectory_generator,
                                      k_rho=0.5,
@@ -114,7 +128,7 @@ with description('controller', 'unit') as self:
             Location.from_angle_degrees(Point(120, 0), 0),
         ]
         robot.set_speed = MagicMock()
-        trajectory_generator = TrajectoryGenerator([Location.from_angle_degrees(Point(120, 0), 0)])
+        trajectory_generator = FakeTrajectoryGenerator([Location.from_angle_degrees(Point(120, 0), 0)])
 
         self.controller = Controller(robot=robot, polling_period=0.2,
                                      trajectory_generator=trajectory_generator,

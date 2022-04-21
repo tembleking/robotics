@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 
+from robotics.geometry import Location
 from robotics.robot.odometry import Odometry
 
 
@@ -33,26 +34,26 @@ class Robot:
         self.left_motor.set_speed(angular_speed[0, 1])
         self.right_motor.set_speed(angular_speed[0, 0])
 
-    def open_claws(self):
-        self.claw_motor.set_position(-180)
-
-    def close_claws(self):
-        self.claw_motor.set_position(0)
-
     def start_odometry(self):
         self.odometry.start()
 
     def stop_odometry(self):
         self.odometry.stop()
 
-    def location(self):
-        self.odometry.location()
+    def location(self) -> Location:
+        return self.odometry.location()
 
     def try_retrieve_ball(self):
-        self.open_claws()
+        self._open_claws()
         time.sleep(5)
         self.set_speed(0.06, 0.01)
         time.sleep(1.5)
         self.set_speed(0, 0)
-        self.close_claws()
+        self._close_claws()
         time.sleep(5)
+
+    def _open_claws(self):
+        self.claw_motor.set_position(-180)
+
+    def _close_claws(self):
+        self.claw_motor.set_position(0)

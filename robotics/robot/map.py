@@ -194,6 +194,9 @@ class Map:
         y_cell = int(np.floor(y_mm / self.sizeCell))
         return [x_cell, y_cell]
 
+    def sizeCell(self):
+        return self.sizeCell
+
     # ############################################################
     # public methods
     # ############################################################
