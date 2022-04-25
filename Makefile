@@ -18,7 +18,7 @@ push-to-robot: get-robot-ip
 	ssh pi@$(shell cat robot_ip) "pip install *.whl"
 
 get-robot-ip:
-	nmap 192.168.209.* -sP | \
+	nmap 192.168.31.* -sP | \
 	grep "Nmap scan report" | \
 	cut -d' ' -f5 | \
 	xargs -I% sh -c \
@@ -34,3 +34,6 @@ test-ruedas:
 
 ssh:
 	ssh pi@$(shell cat robot_ip)
+
+show-odometry:
+	scp pi@$(shell cat robot_ip):latest_odometry.png /tmp/latest_odometry.png && xdg-open /tmp/latest_odometry.png

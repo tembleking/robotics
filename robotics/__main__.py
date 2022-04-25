@@ -1,30 +1,37 @@
-import matplotlib.pyplot
-import time
+import math
+
 import cv2
+import matplotlib.pyplot
 
 from robotics.actuators import brickpi3
 from robotics.actuators.motor import Motor
 from robotics.geometry import Location, Point
 from robotics.paint import MatPlotLibPrinter, RobotPainter
+from robotics.robot.ball_following_speed_generator import BallFollowingSpeedGenerator
 from robotics.robot.controller import Controller
+from robotics.robot.map import Map
 from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 from robotics.robot.trajectory_generator import TrajectoryGenerator
-from robotics.robot.ball_following_speed_generator import BallFollowingSpeedGenerator
 from robotics.sensors.camera import Camera
 
-wheel_radius = 0.025
-axis_length = 0.119
+wheel_radius = 0.0275
+axis_length = 0.115
 left_wheel_port = brickpi3.BrickPi3.PORT_B
 right_wheel_port = brickpi3.BrickPi3.PORT_A
 claw_port = brickpi3.BrickPi3.PORT_C
 
+initial_cell = [2, 2, -math.pi/2]
+destination_cell = [7, 0]
+
 
 class Factory:
-    def __init__(self, BP: brickpi3.BrickPi3):
+    def __init__(self, BP: brickpi3.BrickPi3, map_contents: bytes):
         self.bp = BP
         self._odometry = None
         self._camera = None
+        self._map = None
+        self.map_contents = map_contents
 
     def left_wheel(self) -> Motor:
         return Motor(self.bp, left_wheel_port, motor_name='left_wheel')
@@ -35,23 +42,25 @@ class Factory:
     def claw(self) -> Motor:
         return Motor(self.bp, claw_port, motor_name='claw', motor_limit_dps=60)
 
-    def controller(self, trajectory: list):
+    def controller(self):
         return Controller(
             robot=self.robot(),
             polling_period=0.05,
-            trajectory_generator=self.trajectory_generator(trajectory),
+            trajectory_generator=self.trajectory_generator(),
             ball_following_speed_generator=self.ball_following_speed_generator(),
             camera=self.camera(),
         )
 
     def odometry(self):
         if self._odometry is None:
+            initial_point = self.map().cellToPoint(initial_cell[0], initial_cell[1])
             self._odometry = Odometry(
                 left_motor=self.left_wheel(),
                 right_motor=self.right_wheel(),
                 polling_period=0.01,
                 wheel_radius=wheel_radius,
                 axis_length=axis_length,
+                initial_location=[initial_point.x, initial_point.y, initial_cell[2]],
             )
         return self._odometry
 
@@ -65,8 +74,14 @@ class Factory:
             axis_length=axis_length,
         )
 
-    def trajectory_generator(self, trajectory: list):
-        return TrajectoryGenerator(trajectory)
+    def map(self):
+        if not self._map:
+            self._map = Map(self.map_contents)
+        return self._map
+
+    def trajectory_generator(self):
+        return TrajectoryGenerator(self.robot(), self.map(),
+                                   destination=Point(destination_cell[0], destination_cell[1]))
 
     def camera(self):
         if self._camera is None:
@@ -157,11 +172,9 @@ def display_visited_points_in_graph(visited_points: list):
     matplotlib.pyplot.show()
 
 
-def save_visited_points_in_graph(visited_points: list, trajectory, filename: str):
+def save_visited_points_in_graph(visited_points: list, filename: str):
     painter = RobotPainter(MatPlotLibPrinter())
     for point in visited_points:
-        painter.paint([point.origin.x, point.origin.y, point.angle_radians()])
-    for point in trajectory:
         painter.paint([point.origin.x, point.origin.y, point.angle_radians()])
     matplotlib.pyplot.savefig(filename)
 
@@ -175,62 +188,82 @@ def stop_robot(factory):
         print('exception captured while stopping odometry: %s' % ex)
 
 
+def map_contents():
+    return b"""\
+8 5 400
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 0 0 0 0 0 0 0 1 0 1 0
+0 1 1 1 1 1 0 1 1 1 1 1 1 1 0 1 0
+0 1 0 1 1 1 0 1 0 1 1 1 1 1 0 1 0
+0 1 0 1 1 1 0 1 0 1 1 1 1 1 0 1 0
+0 1 0 1 1 1 0 1 0 1 1 1 1 1 0 1 0
+0 1 0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
+0 1 0 0 0 0 0 1 0 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 0 1 0 1 1 1 1 1 1 1 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+"""
+
+
 def run():
     BP = brickpi3.BrickPi3()
-    factory = Factory(BP)
+    factory = Factory(BP, map_contents=map_contents())
 
-    print('Starting robot')
     try:
-        print('Starting one-point trajectory')
-        ctrl = factory.controller(trajectory=one_point())
+        print('Starting robot')
+        ctrl = factory.controller()
         ctrl.start()
-
-        dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_one_point.csv')
-        # display_visited_points_in_graph(ctrl.visited_points)
-
-        print('Waiting 15 seconds until next trajectory')
-        time.sleep(15)
-
-        print('Starting square trajectory')
-        ctrl = factory.controller(trajectory=square_trajectory())
-        ctrl.start()
-
-        dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_square.csv')
-        # display_visited_points_in_graph(ctrl.visited_points)
-
-        print('Waiting 15 seconds until next trajectory')
-        time.sleep(15)
-
-        print('Starting square trajectory without turns')
-        ctrl = factory.controller(trajectory=square_trajectory_without_turns())
-        ctrl.start()
-
-        dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_square.csv')
-        # display_visited_points_in_graph(ctrl.visited_points)
-
-        print('Waiting 15 seconds until next trajectory')
-        time.sleep(15)
-
-        print('Starting eight trajectory')
-        ctrl = factory.controller(trajectory=eight_trajectory())
-        ctrl.start()
-
-        dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_eight.csv')
-        # display_visited_points_in_graph(ctrl.visited_points)
-
-        print('Waiting 15 seconds until next trajectory')
-        time.sleep(15)
-
-        print('Starting wheels trajectory')
-        ctrl = factory.controller(trajectory=wheels_trajectory())
-        ctrl.start()
-
-        dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_wheel.csv')
-        # display_visited_points_in_graph(ctrl.visited_points)
+    #     print('Starting one-point trajectory')
+    #     ctrl = factory.controller()
+    #     ctrl.start()
+    #
+    #     dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_one_point.csv')
+    #     # display_visited_points_in_graph(ctrl.visited_points)
+    #
+    #     print('Waiting 15 seconds until next trajectory')
+    #     time.sleep(15)
+    #
+    #     print('Starting square trajectory')
+    #     ctrl = factory.controller()
+    #     ctrl.start()
+    #
+    #     dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_square.csv')
+    #     # display_visited_points_in_graph(ctrl.visited_points)
+    #
+    #     print('Waiting 15 seconds until next trajectory')
+    #     time.sleep(15)
+    #
+    #     print('Starting square trajectory without turns')
+    #     ctrl = factory.controller()
+    #     ctrl.start()
+    #
+    #     dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_square.csv')
+    #     # display_visited_points_in_graph(ctrl.visited_points)
+    #
+    #     print('Waiting 15 seconds until next trajectory')
+    #     time.sleep(15)
+    #
+    #     print('Starting eight trajectory')
+    #     ctrl = factory.controller()
+    #     ctrl.start()
+    #
+    #     dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_eight.csv')
+    #     # display_visited_points_in_graph(ctrl.visited_points)
+    #
+    #     print('Waiting 15 seconds until next trajectory')
+    #     time.sleep(15)
+    #
+    #     print('Starting wheels trajectory')
+    #     ctrl = factory.controller()
+    #     ctrl.start()
+    #
+    #     dump_visited_points_to_csv_file(ctrl.visited_points, 'visited_points_wheel.csv')
+    #     # display_visited_points_in_graph(ctrl.visited_points)
     except BaseException as e:
         print('captured exception: %s' % e)
     finally:
         stop_robot(factory)
-        dump_visited_points_to_csv_file(ctrl.visited_points, 'latest_run.csv')
-        save_visited_points_in_graph(ctrl.visited_points, trajectory=Location.from_angle_degrees(Point(0, 0), 0),
-                                     filename='latest_odometry.png')
+        # dump_visited_points_to_csv_file(ctrl.visited_points, 'latest_run.csv')
+        save_visited_points_in_graph(ctrl.visited_points, filename='latest_odometry.png')
+        robot_points = [[point.origin.x * 1000, point.origin.y * 1000, point.angle_radians()] for point in ctrl.visited_points]
+        factory.map().drawMap(robotPosVectors=robot_points, saveSnapshot=True)

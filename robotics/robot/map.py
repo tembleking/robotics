@@ -8,6 +8,8 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
+from robotics.geometry import Point
+
 
 class Map:
     def __init__(self, map_description_file):
@@ -41,7 +43,7 @@ class Map:
         # variables about map params
         self.sizeX = 0
         self.sizeY = 0
-        self.sizeCell = 0
+        self._sizeCell = 0
 
         self.connectionMatrix = None
         self.costMatrix = None
@@ -101,7 +103,7 @@ class Map:
             parsed_header = [int(c) for c in tmp]
             # expected to have three numbers: sizeX sizeY sizeCell_in_mm
             if len(parsed_header) == 3:
-                self.sizeX, self.sizeY, self.sizeCell = parsed_header
+                self.sizeX, self.sizeY, self._sizeCell = parsed_header
             else:
                 print('Wrong header in map file: %s' % header)
                 return False
@@ -190,12 +192,17 @@ class Map:
     def _pos2cell(self, x_mm, y_mm):
         """ Convert from robot odometry coordinates (in mm) to cell coordinates """
         # make sure we discretize the result to the closest lower integer value
-        x_cell = int(np.floor(x_mm / self.sizeCell))
-        y_cell = int(np.floor(y_mm / self.sizeCell))
+        x_cell = int(np.floor(x_mm / self._sizeCell))
+        y_cell = int(np.floor(y_mm / self._sizeCell))
         return [x_cell, y_cell]
 
+    def cellToPoint(self, cell_x, cell_y) -> Point:
+        size_in_meters = self.sizeCell() / 1000
+        return Point(cell_x * size_in_meters + size_in_meters / 2,
+                     cell_y * size_in_meters + size_in_meters / 2)
+
     def sizeCell(self):
-        return self.sizeCell
+        return self._sizeCell
 
     # ############################################################
     # public methods
@@ -253,8 +260,8 @@ class Map:
         plt.yticks(y_t, y_labels)
 
         # Main rectangle
-        X = np.array([0, self.sizeX, self.sizeX, 0, 0]) * self.sizeCell
-        Y = np.array([0, 0, self.sizeY, self.sizeY, 0]) * self.sizeCell
+        X = np.array([0, self.sizeX, self.sizeX, 0, 0]) * self._sizeCell
+        Y = np.array([0, 0, self.sizeY, self.sizeY, 0]) * self._sizeCell
         self.current_ax.plot(X, Y, self.mapLineStyle)
 
         # "vertical" walls
@@ -264,8 +271,8 @@ class Map:
                     # paint "right" wall from cell (i-1)/2, (j-1)/2
                     cx = np.floor((i - 1) / 2)
                     cy = np.floor((j - 1) / 2)
-                    X = np.array([cx + 1, cx + 1]) * self.sizeCell
-                    Y = np.array([cy, cy + 1]) * self.sizeCell
+                    X = np.array([cx + 1, cx + 1]) * self._sizeCell
+                    Y = np.array([cy, cy + 1]) * self._sizeCell
                     self.current_ax.plot(X, Y, self.mapLineStyle)
 
         # "horizontal" walls
@@ -275,8 +282,8 @@ class Map:
                     # paint "top" wall from cell (i-1)/2, (j-1)/2
                     cx = np.floor((i - 1) / 2)
                     cy = np.floor((j - 1) / 2)
-                    X = np.array([cx, cx + 1]) * self.sizeCell
-                    Y = np.array([cy + 1, cy + 1]) * self.sizeCell
+                    X = np.array([cx, cx + 1]) * self._sizeCell
+                    Y = np.array([cy + 1, cy + 1]) * self._sizeCell
                     self.current_ax.plot(X, Y, self.mapLineStyle)
         plt.axis('equal')
 
@@ -295,8 +302,8 @@ class Map:
         # "center" of each cell
         for i in range(0, self.sizeX):
             for j in range(0, self.sizeY):
-                cx = i * self.sizeCell + self.sizeCell / 2.
-                cy = j * self.sizeCell + self.sizeCell / 2.
+                cx = i * self._sizeCell + self._sizeCell / 2.
+                cy = j * self._sizeCell + self._sizeCell / 2.
                 X = np.array([cx])
                 Y = np.array([cy])
                 cost = self.costMatrix[i, j]
@@ -373,7 +380,6 @@ class Map:
 
         if robotPosVectors:
             for loc in robotPosVectors:
-                print('Robot in pos: ', loc)
                 self._drawRobot(loc_x_y_th=loc, robotPlotStyle='b--')
             # plot last robot position with solid green line
             self._drawRobot(loc_x_y_th=loc, robotPlotStyle='g-')

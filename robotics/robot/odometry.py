@@ -7,7 +7,7 @@ import numpy as np
 
 
 class Odometry:
-    def __init__(self, left_motor, right_motor, polling_period, wheel_radius, axis_length):
+    def __init__(self, left_motor, right_motor, polling_period, wheel_radius, axis_length, initial_location=None):
         self.left_motor = left_motor
         self.right_motor = right_motor
         self.polling_period = polling_period
@@ -20,6 +20,8 @@ class Odometry:
         self.x = Value('f')
         self.y = Value('f')
         self.th = Value('f')
+        if initial_location:
+            self.x.value, self.y.value, self.th.value = initial_location
 
     def start(self):
         self.inner_process.start()

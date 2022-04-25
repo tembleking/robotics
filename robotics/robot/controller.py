@@ -1,10 +1,8 @@
+import math
 import time
 
 from robotics.geometry import Direction, Location
 from robotics.robot.robot import Robot
-
-distance_threshold = 0.05
-angle_threshold = 5
 
 
 class Controller:
@@ -16,6 +14,9 @@ class Controller:
         self.trajectory_generator = trajectory_generator
         self.ball_following_speed_generator = ball_following_speed_generator
         self.camera = camera
+        self.last_point_distance = math.inf
+        self.last_point_angle = math.inf
+        self._has_arrived_angle = False
 
     def start(self):
         self.robot.start_odometry()
@@ -28,7 +29,7 @@ class Controller:
                 return
 
             if self.has_arrived(next_relative_location):
-                self.trajectory_generator.mark_point_as_visited()
+                self.mark_point_as_visited()
                 continue
 
             v, w = self.get_next_velocities(next_relative_location)
@@ -38,14 +39,32 @@ class Controller:
             if sleep_time > 0:
                 time.sleep(sleep_time)
 
-    @staticmethod
-    def has_arrived(next_relative_location: Location) -> bool:
+    def has_arrived_angle(self, next_relative_location: Location) -> bool:
+        angle_to_arrive = abs(next_relative_location.angle_radians())
+        self._has_arrived_angle = angle_to_arrive > self.last_point_angle or self._has_arrived_angle
+        self.last_point_angle = angle_to_arrive
+        return self._has_arrived_angle
+
+    def has_arrived_distance(self, next_relative_location: Location) -> bool:
         distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
-        angle_to_arrive = abs(next_relative_location.angle_degrees())
-        has_arrived = distance_to_arrive <= distance_threshold and angle_to_arrive <= angle_threshold
+        has_arrived = distance_to_arrive > self.last_point_distance
+        self.last_point_distance = distance_to_arrive
+        return has_arrived
+
+    def has_arrived(self, next_relative_location: Location) -> bool:
+        angle_to_arrive = abs(next_relative_location.angle_radians())
+        distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
+        has_arrived = self.has_arrived_angle(next_relative_location) and self.has_arrived_distance(
+            next_relative_location)
         print('distance_to_arrive: %s, angle_to_arrive=%s, has_arrived=%s' % (
             distance_to_arrive, angle_to_arrive, has_arrived))
         return has_arrived
+
+    def mark_point_as_visited(self):
+        self.last_point_distance = math.inf
+        self.last_point_angle = math.inf
+        self._has_arrived_angle = False
+        self.trajectory_generator.mark_point_as_visited()
 
     def get_next_relative_location(self):
         next_point = self.trajectory_generator.next_absolute_point_to_visit()
@@ -62,11 +81,11 @@ class Controller:
         return next_location_from_current_location
 
     def get_next_velocities(self, next_relative_location: Location):
-        if next_relative_location.angle_degrees() > 5:
-            return 0, 0.5
-        if next_relative_location.angle_degrees() < -5:
-            return 0, -0.5
-        return 0.2, 0
+        if next_relative_location.angle_radians() > 0.025:
+            return 0, 0.25
+        if next_relative_location.angle_radians() < -0.025:
+            return 0, -0.25
+        return 0.1, 0
 
     def is_ball_in_claws(self) -> bool:
         if self.camera is None:
