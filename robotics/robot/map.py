@@ -7,8 +7,10 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-
+import matplotlib
 from robotics.geometry import Point
+
+matplotlib.use('TkAgg')
 
 
 class Map:
@@ -441,7 +443,7 @@ class Map:
             (frontier_x, frontier_y) = frontier.pop(0)
             for orientation in range(8):
                 connected = self.isConnected(frontier_x, frontier_y, orientation)
-                if not connected:
+                if not connected or orientation % 2 != 0:
                     continue
 
                 [cost_coord_x, cost_cord_y] = self._cell2costMatrix(frontier_x, frontier_y, orientation)

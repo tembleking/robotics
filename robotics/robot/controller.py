@@ -28,7 +28,10 @@ class Controller:
             if next_relative_location is None:
                 self.stop()
                 return
-
+            if self.has_arrived_angle(next_relative_location):
+                if self.obstacle_detector.obstacle_detected():
+                    self.trajectory_generator.mark_wall_ahead()
+                    continue
             if self.has_arrived(next_relative_location):
                 self.mark_point_as_visited()
                 continue
@@ -42,7 +45,7 @@ class Controller:
 
     def has_arrived_angle(self, next_relative_location: Location) -> bool:
         angle_to_arrive = abs(next_relative_location.angle_radians())
-        self._has_arrived_angle = angle_to_arrive > self.last_point_angle or self._has_arrived_angle
+        self._has_arrived_angle = angle_to_arrive > self.last_point_angle or self._has_arrived_angle or self.last_point_angle == 0
         self.last_point_angle = angle_to_arrive
         return self._has_arrived_angle
 
@@ -57,8 +60,8 @@ class Controller:
         distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
         has_arrived = self.has_arrived_angle(next_relative_location) and self.has_arrived_distance(
             next_relative_location)
-        print('distance_to_arrive: %s, angle_to_arrive=%s, has_arrived=%s' % (
-            distance_to_arrive, angle_to_arrive, has_arrived))
+        print('distance_to_arrive: %s, last_point_distance: %s, angle_to_arrive=%s, has_arrived=%s' % (
+            distance_to_arrive, self.last_point_distance, angle_to_arrive, has_arrived))
         return has_arrived
 
     def mark_point_as_visited(self):
