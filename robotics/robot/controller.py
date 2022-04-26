@@ -7,12 +7,13 @@ from robotics.robot.robot import Robot
 
 class Controller:
     def __init__(self, robot: Robot, polling_period: float, trajectory_generator, ball_following_speed_generator=None,
-                 camera=None):
+                 camera=None, obstacle_detector=None):
         self.robot = robot
         self.polling_period = polling_period
         self.visited_points = []
         self.trajectory_generator = trajectory_generator
         self.ball_following_speed_generator = ball_following_speed_generator
+        self.obstacle_detector = obstacle_detector
         self.camera = camera
         self.last_point_distance = math.inf
         self.last_point_angle = math.inf

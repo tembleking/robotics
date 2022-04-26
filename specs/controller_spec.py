@@ -10,6 +10,7 @@ from robotics.robot.controller import Controller
 class FakeTrajectoryGenerator:
     def __init__(self, points_to_visit):
         self.points_to_visit = points_to_visit
+        self.mark_wall_ahead_called = False
 
     def next_absolute_point_to_visit(self) -> Point:
         try:
@@ -20,30 +21,34 @@ class FakeTrajectoryGenerator:
     def mark_point_as_visited(self):
         self.points_to_visit = self.points_to_visit[1:]
 
+    def mark_wall_ahead(self):
+        self.points_to_visit = self.points_to_visit[1:]
+        self.mark_wall_ahead_called = True
+
 
 with description('controller', 'unit') as self:
     with it('sends the robot to the next location in a straight line'):
-        robot = MagicMock()
-        robot.set_speed = MagicMock()
-        robot.location.side_effect = [
+        (MagicMock()).set_speed = MagicMock()
+        MagicMock().location.side_effect = [
             Location.from_angle_degrees(Point(0, 0), 0),
             Location.from_angle_degrees(Point(0.2, 0), 0),
             Location.from_angle_degrees(Point(0.40, 0), 0),
-            Location.from_angle_degrees(Point(0.60, 0), 0),
+            Location.from_angle_degrees(Point(0.41, 0), 0),
             Location.from_angle_degrees(Point(0.80, 0), 0),
             Location.from_angle_degrees(Point(1, 0), 0),
             Location.from_angle_degrees(Point(1.2, 0), 0),
+            Location.from_angle_degrees(Point(1.21, 0), 0),
         ]
         trajectory_generator = FakeTrajectoryGenerator([
             Location.from_angle_degrees(Point(0.40, 0), 0),
             Location.from_angle_degrees(Point(1.20, 0), 0),
         ])
-        self.controller = Controller(robot=robot, polling_period=0.2,
+        self.controller = Controller(robot=(MagicMock()), polling_period=0.2,
                                      trajectory_generator=trajectory_generator)
         self.controller.start()
 
-        robot.set_speed.assert_has_calls([call(0.2, 0), call(0, 0)])
-        assert_that(robot.set_speed.call_count, is_(6))
+        MagicMock().set_speed.assert_has_calls([call(0.1, 0), call(0, 0)])
+        assert_that(MagicMock().set_speed.call_count, is_(7))
 
     with it('sends the robot to the next location in a straight line'):
         robot = MagicMock()
@@ -131,3 +136,19 @@ with description('controller', 'unit') as self:
             Location.from_angle_degrees(Point(100, 0), 0),
             Location.from_angle_degrees(Point(120, 0), 0),
         ]))
+
+    with it('marks a new position as well when it encounters a new obstacle'):
+        obstacle_detector = MagicMock()
+        obstacle_detector.obstacle_detected.return_value = True
+        trajectory_generator = FakeTrajectoryGenerator([
+            Location.from_angle_degrees(Point(0.4, 0), 0),
+            Location.from_angle_degrees(Point(0, 0.4), 90),
+            ])
+        robot = MagicMock()
+        robot.location.side_effect = [Location.from_angle_degrees(Point(0, 0), 0),
+                                      Location.from_angle_degrees(Point(120, 0), 0),
+                                      Location.from_angle_degrees(Point(121, 0), 0)]
+        controller = Controller(robot=robot, polling_period=0.2, trajectory_generator=trajectory_generator,
+                                obstacle_detector=obstacle_detector)
+        controller.start()
+        assert_that(trajectory_generator.mark_wall_ahead_called, is_(True))
