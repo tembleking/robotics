@@ -463,7 +463,7 @@ class Map:
 
         path = [(x_ini, y_ini)]
         while self.costMatrix[current_position_x][current_position_y] != 0:
-            for direction in range(8):
+            for direction in range(8, 0, 2):
                 if not self.isConnected(current_position_x, current_position_y, direction):
                     continue
 

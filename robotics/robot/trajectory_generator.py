@@ -46,3 +46,19 @@ class TrajectoryGenerator:
         x_cell = int(point.x * 1000 / self.map.sizeCell())
         y_cell = int(point.y * 1000 / self.map.sizeCell())
         return (x_cell, y_cell)
+
+    def mark_wall_ahead(self):
+        location = self.robot.location()
+        neighbor = self._angle_degrees_to_neighbor(location.angle_degrees())
+        cell = self._position_to_cell(location.origin)
+        self.map.deleteConnection(cell[0], cell[1], neighbor)
+        self._path = self._calculate_path()
+
+    def _angle_degrees_to_neighbor(self, angle_degrees: float) -> int:
+        if abs(angle_degrees) < 45:
+            return 2
+        if abs(angle_degrees) > 135:
+            return 6
+        if angle_degrees > 0:
+            return 0
+        return 4
