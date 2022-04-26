@@ -80,8 +80,8 @@ with description('maplib', 'unit') as self:
         map = Map(mapa0())
         map.fillCostMatrix(2, 2)
         assert (map.costMatrix == np.matrix([
-            [2., 2., 2.],
-            [2., 1., 1.],
+            [4., 3., 2.],
+            [3., 2., 1.],
             [2., 1., 0.]
         ])).all()
 
@@ -98,13 +98,13 @@ with description('maplib', 'unit') as self:
         map = Map(mapa2())
         map.fillCostMatrix(6, 1)
         assert (map.costMatrix == np.matrix([
-            [11., 10., 9., 9., 10.],
-            [12., 8., 8., 9., 9.],
-            [13., 7., 8., 9., 8.],
-            [7., 6., 5., 4., 7.],
-            [2., 2., 2., 3., 6.],
-            [1., 1., 1., 4., 5.],
-            [1., 0., 1., 5., 5.],
+            [13., 12., 11., 12., 11.],
+            [14., 9., 10., 11., 10.],
+            [15., 8., 9., 10., 9.],
+            [8., 7., 6., 5., 8.],
+            [3., 2., 3., 4., 7.],
+            [2., 1., 2., 5., 6.],
+            [1., 0., 1., 6., 7.],
         ])).all()
 
     with context('when retrieving the path to reach the goal'):
@@ -113,5 +113,15 @@ with description('maplib', 'unit') as self:
             map.fillCostMatrix(6, 1)
             path = map.findPath((0, 0), (6, 1))
             assert_that(path, equal_to(
-                [(0, 0), (0, 1), (0, 2), (1, 2), (2, 1), (3, 1), (3, 2), (3, 3), (4, 3), (4, 2), (5, 2), (6, 1)]
+                [(0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (3, 1), (3, 2), (3, 3), (4, 3), (4, 2), (5, 2), (6, 2), (6, 1)]
             ))
+
+    with context("when there's no path to the goal"):
+        with it('should return an empty path'):
+            map = Map(mapa0())
+            map.deleteConnection(0, 0, 0)
+            map.deleteConnection(0, 0, 2)
+            map.fillCostMatrix(2, 2)
+
+            path = map.findPath((0, 0), (2, 2))
+            assert_that(path, equal_to([]))

@@ -410,6 +410,11 @@ class Map:
 
         # FAKE sample path: [ [0,0], [0,0], [0,0], ...., [0,0]  ]
         (current_position_x, current_position_y) = (x_ini, y_ini)
+
+        if self.costMatrix[current_position_x][current_position_y] == -2:
+            # No valid path found, all are walls and we are sad.
+            return []
+
         path = [(x_ini, y_ini)]
         while self.costMatrix[current_position_x][current_position_y] != 0:
             for direction in range(8):
