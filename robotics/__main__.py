@@ -14,14 +14,16 @@ from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 from robotics.robot.trajectory_generator import TrajectoryGenerator
 from robotics.sensors.camera import Camera
+from robotics.sensors.sonar import Sonar
 
 wheel_radius = 0.0275
 axis_length = 0.115
 left_wheel_port = brickpi3.BrickPi3.PORT_B
 right_wheel_port = brickpi3.BrickPi3.PORT_A
 claw_port = brickpi3.BrickPi3.PORT_C
+sonar_port = brickpi3.BrickPi3.PORT_1
 
-initial_cell = [2, 2, -math.pi/2]
+initial_cell = [0, 0, math.pi/2]
 destination_cell = [7, 0]
 
 
@@ -32,6 +34,9 @@ class Factory:
         self._camera = None
         self._map = None
         self.map_contents = map_contents
+
+    def sonar(self):
+        return Sonar(self.bp, sonar_port)
 
     def left_wheel(self) -> Motor:
         return Motor(self.bp, left_wheel_port, motor_name='left_wheel')
@@ -49,6 +54,7 @@ class Factory:
             trajectory_generator=self.trajectory_generator(),
             ball_following_speed_generator=self.ball_following_speed_generator(),
             camera=self.camera(),
+            obstacle_detector=self.sonar(),
         )
 
     def odometry(self):
@@ -263,6 +269,7 @@ def run():
         print('captured exception: %s' % e)
     finally:
         stop_robot(factory)
+        BP.reset_all()
         # dump_visited_points_to_csv_file(ctrl.visited_points, 'latest_run.csv')
         save_visited_points_in_graph(ctrl.visited_points, filename='latest_odometry.png')
         robot_points = [[point.origin.x * 1000, point.origin.y * 1000, point.angle_radians()] for point in ctrl.visited_points]

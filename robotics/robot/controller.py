@@ -28,13 +28,16 @@ class Controller:
             if next_relative_location is None:
                 self.stop()
                 return
-            if self.has_arrived_angle(next_relative_location):
-                if self.obstacle_detector.obstacle_detected():
-                    self.trajectory_generator.mark_wall_ahead()
-                    continue
+
             if self.has_arrived(next_relative_location):
                 self.mark_point_as_visited()
                 continue
+
+            if self.has_arrived_angle(next_relative_location):
+                if self.obstacle_detector.obstacle_detected():
+                    print('obstacle detected')
+                    self.trajectory_generator.mark_wall_ahead()
+                    continue
 
             v, w = self.get_next_velocities(next_relative_location)
             self.robot.set_speed(v, w)
@@ -76,6 +79,7 @@ class Controller:
             return None
 
         current_location_seen_from_world = self.robot.location()
+        print('Current location seen from world: %s' % current_location_seen_from_world)
         if current_location_seen_from_world is None:
             return None
 

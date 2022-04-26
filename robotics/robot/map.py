@@ -7,10 +7,8 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib
-from robotics.geometry import Point
 
-matplotlib.use('TkAgg')
+from robotics.geometry import Point
 
 
 class Map:
@@ -468,7 +466,7 @@ class Map:
 
         path = [(x_ini, y_ini)]
         while self.costMatrix[current_position_x][current_position_y] != 0:
-            for direction in range(8, 0, 2):
+            for direction in range(0, 8, 2):
                 if not self.isConnected(current_position_x, current_position_y, direction):
                     continue
 
