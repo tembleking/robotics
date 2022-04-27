@@ -14,9 +14,6 @@ class Motor:
     def set_speed(self, angular_speed: float):
         degrees = math.degrees(angular_speed)
         degrees = min(500, degrees)
-        print('motor: %s, setting speed (degrees): %s, connected_port: %s' %
-              (self.motor_name, degrees, self.connected_port)
-              )
         self.BP.set_motor_dps(self.connected_port, degrees)
 
     def get_last_angle(self) -> float:

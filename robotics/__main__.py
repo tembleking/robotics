@@ -271,6 +271,6 @@ def run():
         stop_robot(factory)
         BP.reset_all()
         # dump_visited_points_to_csv_file(ctrl.visited_points, 'latest_run.csv')
-        save_visited_points_in_graph(ctrl.visited_points, filename='latest_odometry.png')
-        robot_points = [[point.origin.x * 1000, point.origin.y * 1000, point.angle_radians()] for point in ctrl.visited_points]
+        save_visited_points_in_graph(ctrl.visited_points[::10], filename='latest_odometry.png')
+        robot_points = [[point.origin.x * 1000, point.origin.y * 1000, point.angle_radians()] for point in ctrl.visited_points[::10]]
         factory.map().drawMap(robotPosVectors=robot_points, saveSnapshot=True)

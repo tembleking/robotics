@@ -113,7 +113,8 @@ with description('maplib', 'unit') as self:
             map.fillCostMatrix(6, 1)
             path = map.findPath((0, 0), (6, 1))
             assert_that(path, equal_to(
-                [(0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (3, 1), (3, 2), (3, 3), (4, 3), (4, 2), (5, 2), (6, 2), (6, 1)]
+                [(0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (3, 1), (3, 2), (3, 3), (4, 3), (4, 2), (5, 2), (6, 2),
+                 (6, 1)]
             ))
 
     with context("when there's no path to the goal"):
@@ -125,3 +126,17 @@ with description('maplib', 'unit') as self:
 
             path = map.findPath((0, 0), (2, 2))
             assert_that(path, equal_to([]))
+
+    with context('when there are modifications to the original map'):
+        with it('generates a valid path'):
+            map = Map(mapa3())
+            map.deleteConnection(2, 2, 4)
+            map.deleteConnection(2, 4, 2)
+
+            path = map.findPath((2, 2), (7, 0))
+            map.verbose = True
+            map.drawMap()
+
+            assert_that(path, equal_to(
+                [(2, 2), (1, 2), (1, 1), (2, 1), (3, 1), (3, 2), (3, 3), (4, 3), (5, 3), (6, 3), (6, 2), (6, 1), (7, 1),
+                 (7, 0)]))

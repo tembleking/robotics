@@ -30,6 +30,7 @@ class TrajectoryGenerator:
         location = self.robot.location()
         current_cell = self._position_to_cell(location.origin)
         cell_path = self.map.findPath(current_cell, (self.destination.x, self.destination.y))
+        print('Path: %s' % cell_path[1:])
         point_path = [self._cell_to_point(cell[0], cell[1]) for cell in cell_path]
 
         location_path = []
@@ -39,6 +40,7 @@ class TrajectoryGenerator:
                                             math.atan2(point_path[i].y - point_path[i - 1].y,
                                                        point_path[i].x - point_path[i - 1].x))
             )
+        print('Location Paths: %s' % location_path)
 
         return location_path
 

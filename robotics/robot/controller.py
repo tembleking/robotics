@@ -1,7 +1,7 @@
 import math
 import time
 
-from robotics.geometry import Direction, Location
+from robotics.geometry import Direction, Location, Point
 from robotics.robot.robot import Robot
 
 
@@ -35,6 +35,9 @@ class Controller:
 
             if self.has_arrived_angle(next_relative_location):
                 if self.obstacle_detector.obstacle_detected():
+                    self.last_point_distance = math.inf
+                    self.last_point_angle = math.inf
+                    self._has_arrived_angle = False
                     print('obstacle detected')
                     self.trajectory_generator.mark_wall_ahead()
                     continue
@@ -54,7 +57,7 @@ class Controller:
 
     def has_arrived_distance(self, next_relative_location: Location) -> bool:
         distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
-        has_arrived = distance_to_arrive > self.last_point_distance
+        has_arrived = distance_to_arrive > self.last_point_distance and distance_to_arrive < 0.2
         self.last_point_distance = distance_to_arrive
         return has_arrived
 
@@ -73,13 +76,19 @@ class Controller:
         self._has_arrived_angle = False
         self.trajectory_generator.mark_point_as_visited()
 
+    def _position_to_cell(self, point: Point):
+        x_cell = int(point.x * 1000 / 400)
+        y_cell = int(point.y * 1000 / 400)
+        return (x_cell, y_cell)
+
     def get_next_relative_location(self):
         next_point = self.trajectory_generator.next_absolute_point_to_visit()
         if next_point is None:
             return None
 
         current_location_seen_from_world = self.robot.location()
-        print('Current location seen from world: %s' % current_location_seen_from_world)
+        print('Current location seen from world: %s %s' % (
+            self._position_to_cell(current_location_seen_from_world.origin), current_location_seen_from_world))
         if current_location_seen_from_world is None:
             return None
 

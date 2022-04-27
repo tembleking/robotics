@@ -405,26 +405,7 @@ class Map:
         x_ini, y_ini = point_ini[0], point_ini[1]
         x_end, y_end = point_end[0], point_end[1]
         self.fillCostMatrix(x_end, y_end)
-
-        # FAKE sample path: [ [0,0], [0,0], [0,0], ...., [0,0]  ]
-        (current_position_x, current_position_y) = (x_ini, y_ini)
-
-        if self.costMatrix[current_position_x][current_position_y] == -2:
-            # No valid path found, all are walls and we are sad.
-            return []
-
-        path = [(x_ini, y_ini)]
-        while self.costMatrix[current_position_x][current_position_y] != 0:
-            for direction in range(8):
-                if not self.isConnected(current_position_x, current_position_y, direction):
-                    continue
-
-                (neighbor_x, neighbor_y) = self._cell2costMatrix(current_position_x, current_position_y, direction)
-                if self.costMatrix[neighbor_x][neighbor_y] < self.costMatrix[current_position_x][current_position_y]:
-                    current_position_x, current_position_y = neighbor_x, neighbor_y
-                    path.append((current_position_x, current_position_y))
-                    break
-        return path
+        return self._planPath(x_ini, y_ini)
 
     # ############################################################
     # METHODS to IMPLEMENT in P4
@@ -454,7 +435,7 @@ class Map:
                     self.costMatrix[cost_coord_x, cost_cord_y] = self.costMatrix[frontier_x, frontier_y] + 1
                     frontier.append((cost_coord_x, cost_cord_y))
 
-    def _planPath(self, x_ini, y_ini, x_end, y_end):
+    def _planPath(self, x_ini, y_ini):
         """
         x_ini, y_ini, x_end, y_end: integer values that indicate \
             the x and y coordinates of the starting (ini) and ending (end) cell
@@ -463,6 +444,10 @@ class Map:
         """
         # FAKE sample path: [ [0,0], [0,0], [0,0], ...., [0,0]  ]
         (current_position_x, current_position_y) = (x_ini, y_ini)
+
+        if self.costMatrix[current_position_x][current_position_y] == -2:
+            # No valid path found, all are walls and we are sad.
+            return []
 
         path = [(x_ini, y_ini)]
         while self.costMatrix[current_position_x][current_position_y] != 0:
