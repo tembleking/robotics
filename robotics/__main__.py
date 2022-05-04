@@ -1,4 +1,5 @@
 import math
+import time
 
 import cv2
 import matplotlib.pyplot
@@ -217,6 +218,8 @@ def run():
 
     try:
         print('Starting robot')
+        print('Voltage: %s' % BP.get_voltage_battery())
+        time.sleep(1)
         ctrl = factory.controller()
         ctrl.start()
     #     print('Starting one-point trajectory')
