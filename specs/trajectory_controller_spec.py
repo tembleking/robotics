@@ -4,7 +4,7 @@ from hamcrest import assert_that, is_
 from mamba import description, it, before
 
 from robotics.geometry import Location, Point
-from robotics.robot.controller import TrajectoryController
+from robotics.robot.obstacle_trajectory_speed_generator import ObstacleTrajectorySpeedGenerator
 
 
 class FakeTrajectoryGenerator:
@@ -32,13 +32,13 @@ class FakeTrajectoryGenerator:
         self.mark_wall_ahead_called = True
 
 
-with description('TrajectoryController', 'unit') as self:
+with description('ObstacleTrajectorySpeedGenerator', 'unit') as self:
     with before.each:
         self.trajectory_generator = FakeTrajectoryGenerator()
         self.obstacle_detector = MagicMock()
         self.obstacle_detector.obstacle_detected.return_value = False
-        self.controller = TrajectoryController(trajectory_generator=self.trajectory_generator,
-                                               obstacle_detector=self.obstacle_detector)
+        self.controller = ObstacleTrajectorySpeedGenerator(trajectory_generator=self.trajectory_generator,
+                                                           obstacle_detector=self.obstacle_detector)
 
     with it('sends the robot to the next location in a straight line'):
         self.trajectory_generator.set_points_to_vist([

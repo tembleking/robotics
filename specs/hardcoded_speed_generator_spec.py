@@ -2,12 +2,12 @@ from hamcrest import is_, assert_that
 from mamba import description, it, context
 
 from robotics.geometry import Point, Location
-from robotics.robot.controller import HardcodedController
+from robotics.robot.hardcoded_speed_generator import HardcodedSpeedGenerator
 
-with description('HardcodedController'):
+with description('HardcodedSpeedController'):
     with context('when it starts from the white color'):
         with it('does the S first to the right'):
-            controller = HardcodedController()
+            controller = HardcodedSpeedGenerator()
 
             # It starts from the colored square
             speed = controller.get_speed(Location.from_angle_degrees(Point(0.6, 2.8), -90))
@@ -36,7 +36,7 @@ with description('HardcodedController'):
 
     with context('when it starts from the black color'):
         with it('does the S first to the left'):
-            controller = HardcodedController()
+            controller = HardcodedSpeedGenerator()
 
             # It starts from the colored square
             speed = controller.get_speed(Location.from_angle_degrees(Point(2.2, 2.8), -90))
