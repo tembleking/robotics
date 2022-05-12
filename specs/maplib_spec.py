@@ -132,10 +132,7 @@ with description('maplib', 'unit') as self:
             map = Map(mapa3())
             map.deleteConnection(2, 2, 4)
             map.deleteConnection(2, 4, 2)
-
             path = map.findPath((2, 2), (7, 0))
-            map.verbose = True
-            map.drawMap()
 
             assert_that(path, equal_to(
                 [(2, 2), (1, 2), (1, 1), (2, 1), (3, 1), (3, 2), (3, 3), (4, 3), (5, 3), (6, 3), (6, 2), (6, 1), (7, 1),
