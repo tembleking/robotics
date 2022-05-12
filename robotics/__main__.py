@@ -10,11 +10,13 @@ from robotics.geometry import Location, Point
 from robotics.paint import MatPlotLibPrinter, RobotPainter
 from robotics.robot.ball_following_speed_generator import BallFollowingSpeedGenerator
 from robotics.robot.controller import Controller
-from robotics.robot.map import Map
+from robotics.robot.hardcoded_speed_generator import HardcodedSpeedGenerator
+from robotics.robot.obstacle_trajectory_speed_generator import ObstacleTrajectorySpeedGenerator
 from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 from robotics.robot.trajectory_generator import TrajectoryGenerator
 from robotics.sensors.camera import Camera
+from robotics.sensors.light import Light
 from robotics.sensors.sonar import Sonar
 
 wheel_radius = 0.0275
@@ -23,18 +25,28 @@ left_wheel_port = brickpi3.BrickPi3.PORT_B
 right_wheel_port = brickpi3.BrickPi3.PORT_A
 claw_port = brickpi3.BrickPi3.PORT_C
 sonar_port = brickpi3.BrickPi3.PORT_1
-
-initial_cell = [0, 0, math.pi/2]
-destination_cell = [7, 0]
+light_sensor_port = brickpi3.BrickPi3.PORT_2
+white_initial_odometry = [0.6, 2.8, -math.pi / 2]
+black_initial_odometry = [2.2, 2.8, -math.pi / 2]
+white_destination_cell = [3, 3]
+black_destination_cell = [3, 3]
 
 
 class Factory:
     def __init__(self, BP: brickpi3.BrickPi3, map_contents: bytes):
+        self._robot = None
         self.bp = BP
         self._odometry = None
         self._camera = None
         self._map = None
+        self._destination = None
+        self._light_sensor = None
         self.map_contents = map_contents
+
+    def light_sensor(self):
+        if self._light_sensor is None:
+            self._light_sensor = Light(self.bp, light_sensor_port)
+        return self._light_sensor
 
     def sonar(self):
         return Sonar(self.bp, sonar_port)
@@ -48,47 +60,67 @@ class Factory:
     def claw(self) -> Motor:
         return Motor(self.bp, claw_port, motor_name='claw', motor_limit_dps=60)
 
+    def speed_generators(self) -> list:
+        return [
+            HardcodedSpeedGenerator(),
+            self.obstacle_trajectory_generator(),
+            self.ball_following_speed_generator(),
+        ]
+
+    def obstacle_trajectory_generator(self):
+        return ObstacleTrajectorySpeedGenerator(self.trajectory_generator(), obstacle_detector=self.sonar())
+
     def controller(self):
+
         return Controller(
             robot=self.robot(),
             polling_period=0.05,
-            trajectory_generator=self.trajectory_generator(),
-            ball_following_speed_generator=self.ball_following_speed_generator(),
-            camera=self.camera(),
-            obstacle_detector=self.sonar(),
+            speed_generators=self.speed_generators(),
         )
 
     def odometry(self):
         if self._odometry is None:
-            initial_point = self.map().cellToPoint(initial_cell[0], initial_cell[1])
             self._odometry = Odometry(
                 left_motor=self.left_wheel(),
                 right_motor=self.right_wheel(),
                 polling_period=0.01,
                 wheel_radius=wheel_radius,
                 axis_length=axis_length,
-                initial_location=[initial_point.x, initial_point.y, initial_cell[2]],
+                initial_location=self.initial_location(),
             )
         return self._odometry
 
     def robot(self):
-        return Robot(
-            odometry=self.odometry(),
-            left_motor=self.left_wheel(),
-            right_motor=self.right_wheel(),
-            claw_motor=self.claw(),
-            wheel_radius=wheel_radius,
-            axis_length=axis_length,
-        )
+        if not self._robot:
+            self._robot = Robot(
+                odometry=self.odometry(),
+                left_motor=self.left_wheel(),
+                right_motor=self.right_wheel(),
+                claw_motor=self.claw(),
+                wheel_radius=wheel_radius,
+                axis_length=axis_length,
+            )
+        return self._robot
 
     def map(self):
         if not self._map:
-            self._map = Map(self.map_contents)
+            if self.light_sensor().is_white():
+                self.load_white_map()
+            else:
+                self.load_black_map()
         return self._map
 
     def trajectory_generator(self):
         return TrajectoryGenerator(self.robot(), self.map(),
-                                   destination=Point(destination_cell[0], destination_cell[1]))
+                                   destination=self.destination())
+
+    def destination(self):
+        if not self._destination:
+            if self.light_sensor().is_white():
+                self._destination = Point(white_destination_cell[0], white_destination_cell[1])
+            else:
+                self._destination = Point(black_destination_cell[0], black_destination_cell[1])
+        return self._destination
 
     def camera(self):
         if self._camera is None:
@@ -100,11 +132,24 @@ class Factory:
     def ball_following_speed_generator(self):
         return BallFollowingSpeedGenerator(
             camera=self.camera(),
+            robot=self.robot(),
             area_goal=214,
             distance_goal=267,
             distance_damping=0.001,
             area_damping=0.001,
         )
+
+    def load_white_map(self):
+        pass
+
+    def load_black_map(self):
+        pass
+
+    def initial_location(self):
+        if self.light_sensor().is_white():
+            return white_initial_odometry
+        else:
+            return black_initial_odometry
 
 
 def one_point():
@@ -275,5 +320,6 @@ def run():
         BP.reset_all()
         # dump_visited_points_to_csv_file(ctrl.visited_points, 'latest_run.csv')
         save_visited_points_in_graph(ctrl.visited_points[::10], filename='latest_odometry.png')
-        robot_points = [[point.origin.x * 1000, point.origin.y * 1000, point.angle_radians()] for point in ctrl.visited_points[::10]]
+        robot_points = [[point.origin.x * 1000, point.origin.y * 1000, point.angle_radians()] for point in
+                        ctrl.visited_points[::10]]
         factory.map().drawMap(robotPosVectors=robot_points, saveSnapshot=True)
