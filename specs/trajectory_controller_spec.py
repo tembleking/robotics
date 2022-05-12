@@ -43,8 +43,8 @@ with description('ObstacleTrajectorySpeedGenerator', 'unit') as self:
     with it('sends the robot to the next location in a straight line'):
         self.trajectory_generator.set_points_to_vist([
             Location.from_angle_degrees(Point(0.40, 0), 0),
-            Location.from_angle_degrees(Point(1.20, 0), 0)]
-        )
+            Location.from_angle_degrees(Point(1.20, 0), 0)
+        ])
 
         assert_that(self.controller.get_speed(Location.from_angle_degrees(Point(0, 0), 0)), is_((0.1, 0)))
         assert_that(self.controller.get_speed(Location.from_angle_degrees(Point(0, 0), 0)), is_((0.1, 0)))
@@ -60,6 +60,15 @@ with description('ObstacleTrajectorySpeedGenerator', 'unit') as self:
         assert_that(self.controller.get_speed(Location.from_angle_degrees(Point(0, 0), 0)), is_((0, 0.25)))
         assert_that(self.controller.get_speed(Location.from_angle_degrees(Point(0, 0), 90)), is_((0.1, 0)))
         assert_that(self.controller.get_speed(Location.from_angle_degrees(Point(0, 0.00001), 90)), is_((0, 0)))
+        assert_that(self.controller.get_speed(Location.from_angle_degrees(Point(0, 0.00001), 90)), is_(None))
+
+    with it('turns around to the right'):
+        self.trajectory_generator.set_points_to_vist([Location.from_angle_degrees(Point(0, 0), -90)])
+
+        assert_that(self.controller.get_speed(Location.from_angle_degrees(Point(0, 0), 0)), is_((0, -0.25)))
+        assert_that(self.controller.get_speed(Location.from_angle_degrees(Point(0, 0), -90)), is_((0.1, 0)))
+        assert_that(self.controller.get_speed(Location.from_angle_degrees(Point(0, 0.00001), -90)), is_((0, 0)))
+        assert_that(self.controller.get_speed(Location.from_angle_degrees(Point(0, 0.00001), -90)), is_(None))
 
     with it('marks a new position as well when it encounters a new obstacle'):
         self.obstacle_detector.obstacle_detected.return_value = True

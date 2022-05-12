@@ -4,12 +4,12 @@ from mamba import description, it, context
 from robotics.geometry import Point, Location
 from robotics.robot.hardcoded_speed_generator import HardcodedSpeedGenerator
 
-with description('HardcodedSpeedController'):
+with description('HardcodedSpeedController', 'unit') as self:
     with context('when it starts from the white color'):
         with it('does the S first to the right'):
             controller = HardcodedSpeedGenerator()
 
-            # It starts from the colored square
+            # It starts from the white-colored square
             speed = controller.get_speed(Location.from_angle_degrees(Point(0.6, 2.8), -90))
             # Therefore it should get to the middle of the square
             assert_that(speed, is_((0.1, 0)))
@@ -38,7 +38,7 @@ with description('HardcodedSpeedController'):
         with it('does the S first to the left'):
             controller = HardcodedSpeedGenerator()
 
-            # It starts from the colored square
+            # It starts from the black-colored square
             speed = controller.get_speed(Location.from_angle_degrees(Point(2.2, 2.8), -90))
             # Therefore it should get to the middle of the square
             assert_that(speed, is_((0.1, 0)))
