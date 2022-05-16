@@ -17,6 +17,7 @@ class Controller:
                 start = time.time()
 
                 location = self._robot.location()
+                print('Location:', location)
                 self.visited_points.append(location)
 
                 speed = speed_generator.get_speed(location)

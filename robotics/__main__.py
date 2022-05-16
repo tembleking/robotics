@@ -11,6 +11,7 @@ from robotics.paint import MatPlotLibPrinter, RobotPainter
 from robotics.robot.ball_following_speed_generator import BallFollowingSpeedGenerator
 from robotics.robot.controller import Controller
 from robotics.robot.hardcoded_speed_generator import HardcodedSpeedGenerator
+from robotics.robot.map import Map
 from robotics.robot.obstacle_trajectory_speed_generator import ObstacleTrajectorySpeedGenerator
 from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
@@ -24,8 +25,8 @@ axis_length = 0.115
 left_wheel_port = brickpi3.BrickPi3.PORT_B
 right_wheel_port = brickpi3.BrickPi3.PORT_A
 claw_port = brickpi3.BrickPi3.PORT_C
-sonar_port = brickpi3.BrickPi3.PORT_1
-light_sensor_port = brickpi3.BrickPi3.PORT_2
+sonar_port = brickpi3.BrickPi3.PORT_3
+light_sensor_port = brickpi3.BrickPi3.PORT_4
 white_initial_odometry = [0.6, 2.8, -math.pi / 2]
 black_initial_odometry = [2.2, 2.8, -math.pi / 2]
 white_destination_cell = [3, 3]
@@ -33,20 +34,22 @@ black_destination_cell = [3, 3]
 
 
 class Factory:
-    def __init__(self, BP: brickpi3.BrickPi3, map_contents: bytes):
+    def __init__(self, BP: brickpi3.BrickPi3, white_map: bytes, black_map: bytes):
         self._robot = None
         self.bp = BP
         self._odometry = None
         self._camera = None
         self._map = None
         self._destination = None
-        self._light_sensor = None
-        self.map_contents = map_contents
+        self._light_sensor_is_white = None
 
-    def light_sensor(self):
-        if self._light_sensor is None:
-            self._light_sensor = Light(self.bp, light_sensor_port)
-        return self._light_sensor
+    def light_sensor_is_white(self):
+        if self._light_sensor_is_white is None:
+            light_sensor = Light(self.bp, light_sensor_port)
+            time.sleep(1)
+            self._light_sensor_is_white = light_sensor.is_white()
+        print('Is light sensor white: %s' % self._light_sensor_is_white)
+        return self._light_sensor_is_white
 
     def sonar(self):
         return Sonar(self.bp, sonar_port)
@@ -74,7 +77,7 @@ class Factory:
 
         return Controller(
             robot=self.robot(),
-            polling_period=0.05,
+            polling_period=0.01,
             speed_generators=self.speed_generators(),
         )
 
@@ -104,10 +107,7 @@ class Factory:
 
     def map(self):
         if not self._map:
-            if self.light_sensor().is_white():
-                self.load_white_map()
-            else:
-                self.load_black_map()
+            self._map = self.load_white_map() if self.light_sensor_is_white() else self.load_black_map()
         return self._map
 
     def trajectory_generator(self):
@@ -116,10 +116,9 @@ class Factory:
 
     def destination(self):
         if not self._destination:
-            if self.light_sensor().is_white():
-                self._destination = Point(white_destination_cell[0], white_destination_cell[1])
-            else:
-                self._destination = Point(black_destination_cell[0], black_destination_cell[1])
+            self._destination = Point(white_destination_cell[0],
+                                      white_destination_cell[1]) if self.light_sensor_is_white() else Point(
+                black_destination_cell[0], black_destination_cell[1])
         return self._destination
 
     def camera(self):
@@ -139,17 +138,14 @@ class Factory:
             area_damping=0.001,
         )
 
-    def load_white_map(self):
-        pass
+    def load_white_map(self) -> Map:
+        return Map(white_map_contents())
 
-    def load_black_map(self):
-        pass
+    def load_black_map(self) -> Map:
+        return Map(black_map_contents())
 
     def initial_location(self):
-        if self.light_sensor().is_white():
-            return white_initial_odometry
-        else:
-            return black_initial_odometry
+        return white_initial_odometry if self.light_sensor_is_white() else black_initial_odometry
 
 
 def one_point():
@@ -257,13 +253,59 @@ def map_contents():
 """
 
 
+def white_map_contents():
+    return b"""\
+7 7 400
+0 0 0 1 0 0 0 0 0 0 0 0 0 0 0
+0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
+0 1 1 0 1 1 0 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
+0 1 1 0 1 1 0 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 0 1 0 0 0 0 0 1 0
+0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+"""
+
+
+def black_map_contents():
+    return b"""\
+7 7 400
+0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
+0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 0 1 1 0 1 1 0
+0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 0 1 1 0 1 1 0
+0 1 0 0 0 0 0 1 0 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+"""
+
+
 def run():
     BP = brickpi3.BrickPi3()
-    factory = Factory(BP, map_contents=map_contents())
+    factory = Factory(BP, white_map=white_map_contents(), black_map=black_map_contents())
 
     try:
         print('Starting robot')
-        print('Voltage: %s' % BP.get_voltage_battery())
+        voltage_battery = BP.get_voltage_battery()
+        print('Voltage: %s' % voltage_battery)
+        if voltage_battery < 7:
+            print('Battery voltage is low. Please change the batteries.')
+            return
         time.sleep(1)
         ctrl = factory.controller()
         ctrl.start()

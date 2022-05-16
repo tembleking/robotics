@@ -11,8 +11,12 @@ class ObstacleTrajectorySpeedGenerator:
         self.last_point_distance = math.inf
         self.last_point_angle = math.inf
         self._has_arrived_angle_var = False
+        self.started = False
 
     def get_speed(self, current_location: Location):
+        if not self.started:
+            self.started = True
+            self.trajectory_generator.recalculate_path()
         next_relative_location = self._get_next_relative_location(current_location)
         if next_relative_location is None:
             return None

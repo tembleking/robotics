@@ -44,6 +44,9 @@ class TrajectoryGenerator:
 
         return location_path
 
+    def recalculate_path(self):
+        self._path = self._calculate_path()
+
     def _position_to_cell(self, point: Point):
         x_cell = int(point.x * 1000 / self.map.sizeCell())
         y_cell = int(point.y * 1000 / self.map.sizeCell())

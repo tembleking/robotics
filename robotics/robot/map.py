@@ -236,7 +236,14 @@ class Map:
 
         """
         [connX, connY] = self._cell2connCoord(cellX, cellY, numNeigh)
-        return self.connectionMatrix[connX, connY]
+        return self.isWithinMapBoundaries(cellX, cellY, numNeigh) and self.connectionMatrix[connX, connY]
+
+    def isWithinMapBoundaries(self, cellX, cellY, numNeigh):
+        """
+        returns True if the point (x,y) is within the map boundaries.
+        """
+        [costX, costY] = self._cell2costMatrix(cellX, cellY, numNeigh)
+        return 0 <= costX < self.costMatrix.shape[0] and 0 <= costY < self.costMatrix.shape[1]
 
     # aux functions to display (or save image) with robot and map stuff
     def _drawGrid(self):
