@@ -17,6 +17,7 @@ from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 from robotics.robot.trajectory_generator import TrajectoryGenerator
 from robotics.sensors.camera import Camera
+from robotics.sensors.compass import Compass
 from robotics.sensors.light import Light
 from robotics.sensors.sonar import Sonar
 
@@ -27,6 +28,7 @@ right_wheel_port = brickpi3.BrickPi3.PORT_A
 claw_port = brickpi3.BrickPi3.PORT_C
 sonar_port = brickpi3.BrickPi3.PORT_3
 light_sensor_port = brickpi3.BrickPi3.PORT_4
+compass_port = brickpi3.BrickPi3.PORT_1
 white_initial_odometry = [0.6, 2.8, -math.pi / 2]
 black_initial_odometry = [2.2, 2.8, -math.pi / 2]
 white_destination_cell = [3, 3]
@@ -90,8 +92,12 @@ class Factory:
                 wheel_radius=wheel_radius,
                 axis_length=axis_length,
                 initial_location=self.initial_location(),
+                compass=self.compass()
             )
         return self._odometry
+
+    def compass(self):
+        return Compass(BP=self.bp, port=compass_port)
 
     def robot(self):
         if not self._robot:
@@ -303,10 +309,11 @@ def run():
         print('Starting robot')
         voltage_battery = BP.get_voltage_battery()
         print('Voltage: %s' % voltage_battery)
-        if voltage_battery < 7:
+        if voltage_battery < 6:
             print('Battery voltage is low. Please change the batteries.')
             return
         time.sleep(1)
+        print('Initial location: ', factory.odometry().location())
         ctrl = factory.controller()
         ctrl.start()
     #     print('Starting one-point trajectory')
