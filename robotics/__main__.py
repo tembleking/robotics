@@ -17,7 +17,6 @@ from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
 from robotics.robot.trajectory_generator import TrajectoryGenerator
 from robotics.sensors.camera import Camera
-from robotics.sensors.compass import Compass
 from robotics.sensors.gyro import Gyro
 from robotics.sensors.light import Light
 from robotics.sensors.sonar import Sonar
@@ -97,9 +96,6 @@ class Factory:
                 gyro=self.gyro()
             )
         return self._odometry
-
-    def compass(self):
-        return Compass(BP=self.bp, port=compass_port)
 
     def gyro(self):
         initial_angle = self.initial_location()[2]
