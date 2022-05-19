@@ -75,7 +75,7 @@ class HardcodedSpeedGenerator:
 
     def _has_arrived_distance(self, next_relative_location: Location) -> bool:
         distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
-        has_arrived = distance_to_arrive > self.last_point_distance and distance_to_arrive < 0.2
+        has_arrived = distance_to_arrive > self.last_point_distance and distance_to_arrive < 0.1
         self.last_point_distance = distance_to_arrive
         return has_arrived
 

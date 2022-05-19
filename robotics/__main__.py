@@ -18,6 +18,7 @@ from robotics.robot.robot import Robot
 from robotics.robot.trajectory_generator import TrajectoryGenerator
 from robotics.sensors.camera import Camera
 from robotics.sensors.compass import Compass
+from robotics.sensors.gyro import Gyro
 from robotics.sensors.light import Light
 from robotics.sensors.sonar import Sonar
 
@@ -29,6 +30,7 @@ claw_port = brickpi3.BrickPi3.PORT_C
 sonar_port = brickpi3.BrickPi3.PORT_3
 light_sensor_port = brickpi3.BrickPi3.PORT_4
 compass_port = brickpi3.BrickPi3.PORT_1
+gyro_port = brickpi3.BrickPi3.PORT_1
 white_initial_odometry = [0.6, 2.8, -math.pi / 2]
 black_initial_odometry = [2.2, 2.8, -math.pi / 2]
 white_destination_cell = [3, 3]
@@ -92,12 +94,16 @@ class Factory:
                 wheel_radius=wheel_radius,
                 axis_length=axis_length,
                 initial_location=self.initial_location(),
-                compass=self.compass()
+                gyro=self.gyro()
             )
         return self._odometry
 
     def compass(self):
         return Compass(BP=self.bp, port=compass_port)
+
+    def gyro(self):
+        initial_angle = self.initial_location()[2]
+        return Gyro(BP=self.bp, port=gyro_port, offset=initial_angle)
 
     def robot(self):
         if not self._robot:
@@ -150,7 +156,7 @@ class Factory:
     def load_black_map(self) -> Map:
         return Map(black_map_contents())
 
-    def initial_location(self):
+    def initial_location(self) -> list:
         return white_initial_odometry if self.light_sensor_is_white() else black_initial_odometry
 
 
@@ -315,6 +321,7 @@ def run():
         time.sleep(1)
         print('Initial location: ', factory.odometry().location())
         ctrl = factory.controller()
+        input('Press enter to start')
         ctrl.start()
     #     print('Starting one-point trajectory')
     #     ctrl = factory.controller()
@@ -367,8 +374,10 @@ def run():
     finally:
         stop_robot(factory)
         BP.reset_all()
+        print('Saving odometry...')
         # dump_visited_points_to_csv_file(ctrl.visited_points, 'latest_run.csv')
         save_visited_points_in_graph(ctrl.visited_points[::10], filename='latest_odometry.png')
+        print('Saving map...')
         robot_points = [[point.origin.x * 1000, point.origin.y * 1000, point.angle_radians()] for point in
                         ctrl.visited_points[::10]]
         factory.map().drawMap(robotPosVectors=robot_points, saveSnapshot=True)

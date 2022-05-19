@@ -2,14 +2,15 @@ import math
 import time
 from multiprocessing import Lock, Process, Value
 
-from robotics.geometry import Location, Point
 import numpy as np
 
-from robotics.sensors.compass import Compass
+from robotics.actuators.motor import Motor
+from robotics.geometry import Location, Point
+from robotics.sensors.gyro import Gyro
 
 
 class Odometry:
-    def __init__(self, left_motor, right_motor, polling_period, wheel_radius, axis_length, compass: Compass,
+    def __init__(self, left_motor: Motor, right_motor: Motor, polling_period, wheel_radius, axis_length, gyro: Gyro,
                  initial_location=None):
         self.left_motor = left_motor
         self.right_motor = right_motor
@@ -27,21 +28,7 @@ class Odometry:
         if initial_location:
             self.x.value, self.y.value, self.th.value = initial_location
             self.initial_th_value = initial_location[2]
-        self.compass = compass
-        self.initial_compass_angle = compass.get_angle()
-        self.initial_compass_angle = compass.get_angle()
-        self.initial_compass_angle = compass.get_angle()
-        time.sleep(1)
-
-    def normalize_angle(self, angle_in_radians: float) -> float:
-        return ((angle_in_radians + math.pi) % (2 * math.pi)) - math.pi
-
-    def get_compass_angle(self) -> float:
-        angle = self.normalize_angle(self.compass.get_angle() - self.initial_compass_angle + self.initial_th_value)
-        print('Compass angle: ', math.degrees(self.compass.get_angle()), 'Initial compass angle: ',
-              math.degrees(self.initial_compass_angle), 'Initial th: ', math.degrees(self.initial_th_value),
-              'Angle to return:', math.degrees(angle))
-        return angle
+        self.gyro = gyro
 
     def start(self):
         self.inner_process.start()
@@ -79,7 +66,7 @@ class Odometry:
                                                                                                self.th.value,
                                                                                                v, w)
 
-                self.th.value = self.get_compass_angle()
+                self.th.value = self.gyro.get_angle()
 
             end_time = time.time()
             sleep_time = self.polling_period - (end_time - initial_time)
