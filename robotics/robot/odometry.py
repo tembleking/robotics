@@ -81,3 +81,7 @@ class Odometry:
         y_increment = distance_increment * math.sin(th + (angle_increment / 2))
 
         return x_increment + x, y_increment + y, angle_increment + th
+
+    def set_location(self, new_location: Location):
+        with self.location_lock:
+            self.x.value, self.y.value, self.th.value = new_location.origin.x, new_location.origin.y, new_location.angle_radians()

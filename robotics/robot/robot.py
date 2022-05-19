@@ -57,3 +57,6 @@ class Robot:
 
     def _close_claws(self):
         self.claw_motor.set_position(0)
+
+    def set_location(self, new_location):
+        self.odometry.set_location(new_location)
