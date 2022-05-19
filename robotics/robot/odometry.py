@@ -56,10 +56,11 @@ class Odometry:
         while not self.finished.value:
             initial_time = time.time()
 
-            # Read from the motors
-            v, w = self.read_speed()
             # Update the Location
             with self.location_lock:
+                # Read from the motors
+                v, w = self.read_speed()
+
                 # TODO: We could calculate the new location outside of the lock and then assign it
                 self.x.value, self.y.value, self.th.value = self.__get_new_location_from_speed(self.x.value,
                                                                                                self.y.value,

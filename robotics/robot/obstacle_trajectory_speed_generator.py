@@ -74,6 +74,10 @@ class ObstacleTrajectorySpeedGenerator:
         if next_point is None:
             return None
 
+        new_angle_with_correction = math.atan2(next_point.origin.y - current_location.origin.y,
+                                               next_point.origin.x - current_location.origin.x)
+        next_point = Location.from_angle_radians(next_point.origin, new_angle_with_correction)
+
         print('[TrajectoryController]: current location seen from world: %s %s' % (
             self._position_to_cell(current_location.origin), current_location))
         if current_location is None:

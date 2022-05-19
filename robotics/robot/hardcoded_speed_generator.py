@@ -6,24 +6,24 @@ from robotics.geometry import Location, Point, Direction
 class HardcodedSpeedGenerator:
     def __init__(self):
         self._trajectory_white = [
-            Location.from_angle_degrees(Point(0.6, 2.6), -90),
-            Location.from_angle_degrees(Point(0.6, 2.6), 180),
-            Location.from_angle_degrees(Point(0.6, 1.8), 0),
-            Location.from_angle_degrees(Point(0.6, 1.0), 180),
+            Location.from_angle_degrees(Point(0.6, 2.55), -90),
+            Location.from_angle_degrees(Point(0.6, 2.55), -179),
+            Location.from_angle_degrees(Point(0.6, 1.75), -2),
+            Location.from_angle_degrees(Point(0.6, 1.0), -179),
             Location.from_angle_degrees(Point(0.6, 1.0), -90),
         ]
         self._trajectory_black = [
-            Location.from_angle_degrees(Point(2.2, 2.6), -90),
-            Location.from_angle_degrees(Point(2.2, 2.6), 0),
-            Location.from_angle_degrees(Point(2.2, 1.8), 180),
-            Location.from_angle_degrees(Point(2.2, 1.0), 0),
+            Location.from_angle_degrees(Point(2.2, 2.55), -90),
+            Location.from_angle_degrees(Point(2.2, 2.55), -2),
+            Location.from_angle_degrees(Point(2.2, 1.75), -179),
+            Location.from_angle_degrees(Point(2.2, 1.0), -2),
             Location.from_angle_degrees(Point(2.2, 1.0), -90),
         ]
         self._speeds = [
             (0.1, 0),
-            (0, -0.5),
-            (0.1, 0.25),
-            (0.1, -0.25),
+            (0, -0.25),
+            (0.1/1.5, 0.25/1.5),
+            (0.1/1.5, -(0.1/0.35)/1.5),
             (0.0, 0.25),
         ]
         self.last_point_distance = math.inf
