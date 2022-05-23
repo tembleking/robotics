@@ -9,16 +9,17 @@ from robotics.geometry import Point
 class Camera:
 
     def __init__(self,
-                 video_capturer: cv2.VideoCapture):
+                 video_capturer: cv2.VideoCapture, robot_to_find: str):
         self.video_capturer = video_capturer
+        self._robot_to_find = robot_to_find
         params = cv2.SimpleBlobDetector_Params()
         params.filterByArea = True
-        params.minArea = 200
+        params.minArea = 100
         params.maxArea = 60000
         self.blob_detector = cv2.SimpleBlobDetector_create(params)
-        self.mask_lower_min_hsv = np.array([0, 125, 0])
-        self.mask_lower_max_hsv = np.array([10, 255, 255])
-        self.mask_higher_min_hsv = np.array([170, 125, 0])
+        self.mask_lower_min_hsv = np.array([0, 100, 0])
+        self.mask_lower_max_hsv = np.array([8, 255, 255])
+        self.mask_higher_min_hsv = np.array([160, 100, 0])
         self.mask_higher_max_hsv = np.array([180, 255, 255])
 
     def _get_frame(self) -> np.ndarray:
@@ -40,10 +41,14 @@ class Camera:
         detections = self.blob_detector.detect(255 - mask)
         return detections
 
-    def get_blob_position_and_size(self) -> Tuple[Point, float]:
+    def get_frame(self) -> np.ndarray:
         frame = self._get_frame()
         frame = self._get_frame() if frame is None else frame
         frame = self._get_frame() if frame is None else frame
+        return frame
+
+    def get_blob_position_and_size(self) -> Tuple[Point, float]:
+        frame = self.get_frame()
         keypoints = self._detect_blobs(frame)
         if len(keypoints) == 0:
             return None, None
@@ -56,10 +61,11 @@ class Camera:
         return Point(best_keypoint.pt[0], best_keypoint.pt[1]), best_keypoint.size
 
     def is_ball_within_claws(self) -> bool:
-        frame = self._get_frame()
-        frame = self._get_frame() if frame is None else frame
-        frame = self._get_frame() if frame is None else frame
+        frame = self.get_frame()
         mask = self._get_mask(frame)[380:, :360] / 255
         mean = mask.mean()
         print('Mean of ball within claws: %s' % mean)
         return mean > 0.25
+
+    def get_homography_robot_position(self) -> str:
+        pass

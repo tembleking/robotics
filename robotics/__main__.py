@@ -15,6 +15,7 @@ from robotics.robot.map import Map
 from robotics.robot.obstacle_trajectory_speed_generator import ObstacleTrajectorySpeedGenerator
 from robotics.robot.odometry import Odometry
 from robotics.robot.robot import Robot
+from robotics.robot.robot_finder_speed_generator import RobotFinderSpeedGenerator
 from robotics.robot.trajectory_generator import TrajectoryGenerator
 from robotics.sensors.camera import Camera
 from robotics.sensors.gyro import Gyro
@@ -145,7 +146,12 @@ class Factory:
             distance_damping=0.001,
             area_damping=0.001,
         )
-
+    def robot_finder_speed_generator(self):
+        return RobotFinderSpeedGenerator(
+            is_white_map=self.light_sensor_is_white(),
+            camera=self.camera(),
+            trajectory_generator=self.trajectory_generator()
+        )
     def load_white_map(self) -> Map:
         return Map(white_map_contents())
 

@@ -25,7 +25,11 @@ class TrajectoryGenerator:
     def mark_point_as_visited(self):
         if len(self._path) > 0:
             self._path.pop(0)
-
+            
+    def change_destination(self, destination: Point):
+        self.destination = destination
+        self.recalculate_path()
+        
     def _calculate_path(self):
         location = self.robot.location()
         current_cell = self._position_to_cell(location.origin)
