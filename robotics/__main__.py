@@ -35,6 +35,8 @@ white_initial_odometry = [0.6, 2.8, -math.pi / 2]
 black_initial_odometry = [2.2, 2.8, -math.pi / 2]
 white_destination_cell = [3, 3]
 black_destination_cell = [3, 3]
+r2d2_template = cv2.imread("images/R2-D2_s.png")
+bb8_template = cv2.imread("images/BB8_s.png")
 
 
 class Factory:
@@ -134,7 +136,10 @@ class Factory:
         if self._camera is None:
             video_capture = cv2.VideoCapture(0)
             video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
-            self._camera = Camera(video_capture)
+            self._camera = Camera(video_capture,
+                                  "r2d2" if self.light_sensor_is_white() else "bb8",
+                                  r2d2_template,
+                                  bb8_template)
         return self._camera
 
     def ball_following_speed_generator(self):
