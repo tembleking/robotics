@@ -150,23 +150,33 @@ class Camera:
         return found
 
 
-    def get_homography_robot_position(self, image: np.ndarray, target: str) -> str:
+    def get_homography_robot_position(self) -> str:
+        img = self.get_frame()
+        if img == None:
+            return None
+        target = self._robot_to_find
         if target != "r2d2" and target != "bb8":
             print("Unknown target robot")
             return None
         
-        r2d2_x = _match_images(r2d2, img)
-        r2d2_x = _match_images(bb8, img)
+        r2d2_x = self._match_images(self.r2d2_template, img)
+        bb8_x = self._match_images(self.bb8_template, img)
 
         if r2d2_x is None or bb8_x is None:
             return None
-        if args.target == "r2d2":
+        if target == "r2d2":
+            print("Target is r2d2")
             if r2d2_x < bb8_x:
-                return "izquierda"
+                print("r2d2 is left")
+                return "left"
             else:
-                return "derecha"
+                print("r2d2 is right")
+                return "right"
         else:
+            print("Target is bb8")
             if bb8_x < r2d2_x:
-                return "izquierda"
+                print("bb8 is left")
+                return "left"
             else:
-                return "derecha"
+                print("bb8 is right")
+                return "right"

@@ -35,9 +35,6 @@ white_initial_odometry = [0.6, 2.8, -math.pi / 2]
 black_initial_odometry = [2.2, 2.8, -math.pi / 2]
 white_destination_cell = [3, 3]
 black_destination_cell = [3, 3]
-r2d2_template = cv2.imread("images/R2-D2_s.png")
-bb8_template = cv2.imread("images/BB8_s.png")
-
 
 class Factory:
     def __init__(self, BP: brickpi3.BrickPi3, white_map: bytes, black_map: bytes):
@@ -48,6 +45,12 @@ class Factory:
         self._map = None
         self._destination = None
         self._light_sensor_is_white = None
+
+    def r2d2_template(self):
+        return cv2.imread("/home/pi/R2-D2_s.png")
+
+    def bb8_template(self):
+        return cv2.imread("/home/pi/BB8_s.png")
 
     def light_sensor_is_white(self):
         if self._light_sensor_is_white is None:
@@ -74,6 +77,7 @@ class Factory:
             HardcodedSpeedGenerator(),
             self.obstacle_trajectory_generator(),
             self.ball_following_speed_generator(),
+            self.robot_finder_speed_generator(),
         ]
 
     def obstacle_trajectory_generator(self):
@@ -138,16 +142,16 @@ class Factory:
             video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
             self._camera = Camera(video_capture,
                                   "r2d2" if self.light_sensor_is_white() else "bb8",
-                                  r2d2_template,
-                                  bb8_template)
+                                  self.r2d2_template(),
+                                  self.bb8_template())
         return self._camera
 
     def ball_following_speed_generator(self):
         return BallFollowingSpeedGenerator(
             camera=self.camera(),
             robot=self.robot(),
-            area_goal=214,
-            distance_goal=267,
+            area_goal=185,
+            distance_goal=285,
             distance_damping=0.001,
             area_damping=0.001,
         )
@@ -155,7 +159,7 @@ class Factory:
         return RobotFinderSpeedGenerator(
             is_white_map=self.light_sensor_is_white(),
             camera=self.camera(),
-            trajectory_generator=self.trajectory_generator()
+            obstacle_speed_generator=self.obstacle_trajectory_generator(),
         )
     def load_white_map(self) -> Map:
         return Map(white_map_contents())

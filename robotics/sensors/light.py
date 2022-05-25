@@ -8,4 +8,4 @@ class Light:
         BP.set_sensor_type(port, BP.SENSOR_TYPE.NXT_LIGHT_ON)
 
     def is_white(self):
-        return self.BP.get_sensor(self.port) < 2000
+        return self.BP.get_sensor(self.port) < 2100

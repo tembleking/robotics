@@ -44,19 +44,17 @@ class Robot:
         return self.odometry.location()
 
     def try_retrieve_ball(self):
-        self._open_claws()
-        time.sleep(5)
-        self.set_speed(0.06, 0.01)
-        time.sleep(1.5)
+        self.set_speed(0.1, 0)
+        time.sleep(1)
         self.set_speed(0, 0)
         self._close_claws()
         time.sleep(5)
 
     def _open_claws(self):
-        self.claw_motor.set_position(-180)
+        self.claw_motor.set_position(0)
 
     def _close_claws(self):
-        self.claw_motor.set_position(0)
+        self.claw_motor.set_position(90)
 
     def set_location(self, new_location):
         self.odometry.set_location(new_location)
