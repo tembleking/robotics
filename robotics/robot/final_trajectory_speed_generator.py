@@ -61,8 +61,9 @@ class FinalTrajectorySpeedGenerator:
         # Going to the center
         if not self._has_reached_center(): 
             location = self._get_next_center_location()
+            relative_location = self._get_next_relative_location(current_location, location)
             
-            if self._has_arrived(location):
+            if self._has_arrived(relative_location):
                 self._pop_next_center_location()
            
             # We still don't know the angle to reach
@@ -86,8 +87,9 @@ class FinalTrajectorySpeedGenerator:
         # Leaving the circuit
         elif not self._has_left():
             location = self._get_next_circuit_location()
+            relative_location = self._get_next_relative_location(current_location, location)
             
-            if self._has_arrived(location):
+            if self._has_arrived(relative_location):
                 self._pop_next_circuit_location()
                 self._pop_next_location_speed()
             
@@ -145,6 +147,16 @@ class FinalTrajectorySpeedGenerator:
         
         self._speeds_right.pop()
     
+    def _current_center_speed(self, current_location: Location) -> (float, float):
+        return self._speeds_center[0]
+    
+    def _current_trajectory_speed(self) -> (float, float):
+        if self._door == "left":
+            return self._speeds_trajectory_left[0]
+        
+        return self._speeds_trajectory_right[0]
+        
+
     # Funtions from Harcoded Speed Generator
     def _has_arrived_angle(self, next_relative_location: Location) -> bool:
         angle_to_arrive = abs(next_relative_location.angle_radians())
@@ -169,12 +181,12 @@ class FinalTrajectorySpeedGenerator:
                 distance_to_arrive, self.last_point_distance, angle_to_arrive, has_arrived))
         return has_arrived
     
-    def _current_center_speed(self, current_location: Location) -> (float, float):
-        return self._speeds_center[0]
-    
-    def _current_trajectory_speed(self) -> (float, float):
-        if self._door == "left":
-            return self._speeds_trajectory_left[0]
-        
-        return self._speeds_trajectory_right[0]
+    def _get_next_relative_location(self, current_location: Location, next_location: Location) -> Location:
+        if next_location is None:
+            return None
+
+        world_seen_from_current_location = current_location.inverse()
+        next_location_from_current_location = next_location.seen_from_other_location(world_seen_from_current_location)
+        return next_location_from_current_location
+
         
