@@ -10,6 +10,7 @@ from robotics.geometry import Location, Point
 from robotics.paint import MatPlotLibPrinter, RobotPainter
 from robotics.robot.ball_following_speed_generator import BallFollowingSpeedGenerator
 from robotics.robot.controller import Controller
+from robotics.robot.final_trajectory_speed_generator import FinalTrajectorySpeedGenerator
 from robotics.robot.hardcoded_speed_generator import HardcodedSpeedGenerator
 from robotics.robot.map import Map
 from robotics.robot.obstacle_trajectory_speed_generator import ObstacleTrajectorySpeedGenerator
@@ -27,7 +28,7 @@ axis_length = 0.115
 left_wheel_port = brickpi3.BrickPi3.PORT_B
 right_wheel_port = brickpi3.BrickPi3.PORT_A
 claw_port = brickpi3.BrickPi3.PORT_C
-sonar_port = brickpi3.BrickPi3.PORT_3
+sonar_port = brickpi3.BrickPi3.PORT_2
 light_sensor_port = brickpi3.BrickPi3.PORT_4
 compass_port = brickpi3.BrickPi3.PORT_1
 gyro_port = brickpi3.BrickPi3.PORT_1
@@ -77,11 +78,15 @@ class Factory:
             HardcodedSpeedGenerator(),
             self.obstacle_trajectory_generator(),
             self.ball_following_speed_generator(),
-            self.robot_finder_speed_generator(),
+            self.final_trajectory_speed_generator(),
+            #self.robot_finder_speed_generator(),
         ]
 
     def obstacle_trajectory_generator(self):
         return ObstacleTrajectorySpeedGenerator(self.trajectory_generator(), obstacle_detector=self.sonar())
+
+    def final_trajectory_speed_generator(self):
+        return FinalTrajectorySpeedGenerator(self.light_sensor_is_white(), self.camera())
 
     def controller(self):
 
@@ -150,8 +155,8 @@ class Factory:
         return BallFollowingSpeedGenerator(
             camera=self.camera(),
             robot=self.robot(),
-            area_goal=185,
-            distance_goal=285,
+            area_goal=198,
+            distance_goal=234,
             distance_damping=0.001,
             area_damping=0.001,
         )

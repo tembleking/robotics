@@ -1,16 +1,16 @@
-
+import math
 from robotics.geometry import Direction, Location, Point
 from robotics.sensors import camera
 
 class FinalTrajectorySpeedGenerator:
     def __init__(self, isWhite: bool, camera: camera):
         self._center_white = [
-            Location.from_angle_degrees(Point(2, 2), None),        # Angle unknown at the beginning
+            Location.from_angle_degrees(Point(2, 2), -200),        # Angle unknown at the beginning
             Location.from_angle_degrees(Point(2, 2), 90)
         ]
         
         self._center_black = [
-            Location.from_angle_degrees(Point(0.8, 2), None),      # Angle unknown at the beginning
+            Location.from_angle_degrees(Point(0.8, 2), -200),      # Angle unknown at the beginning
             Location.from_angle_degrees(Point(0.8, 2), 90)
         ]
         
@@ -47,12 +47,15 @@ class FinalTrajectorySpeedGenerator:
             (0.0, 0.25),
             (0.1, 0),
         ]
+        self.last_point_distance = math.inf
+        self.last_point_angle = math.inf
+        self._has_arrived_angle_var = False
         
         self._camera = camera
         self._door = None # None: Unkown, Other: ("left" | "right")
         self._isWhite = isWhite
         
-    def getSpeed(self, current_location: Location):
+    def get_speed(self, current_location: Location):
         # Refactor: Make it multiprocess and instead of doing a state
         #           machine, do 2 points (go to center and look up)
         #           and return (0, 0) while the thread is executing.
@@ -67,14 +70,15 @@ class FinalTrajectorySpeedGenerator:
                 self._pop_next_center_location()
            
             # We still don't know the angle to reach
-            if self.location[2] == None:
-                self.location[2] = current_location[2]
+            if location.angle_degrees() == -200:
+                location = Location.from_angle_degrees(Point(location.origin.x, location.origin.y), current_location.angle_degrees())
                 
-            return self._current_speed()
+            return self._current_center_speed(current_location)
         
         # Looking for the robots
         elif self._door == None:
             self._door = camera.get_homography_robot_position()
+            self._door = "right" if self._door == None else self._door
             if self._door == "right":
                 for i in range(len(self._trajectory_white)):
                     self._trajectory_white[i] = Location(
