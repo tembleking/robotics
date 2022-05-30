@@ -33,7 +33,7 @@ light_sensor_port = brickpi3.BrickPi3.PORT_4
 compass_port = brickpi3.BrickPi3.PORT_1
 gyro_port = brickpi3.BrickPi3.PORT_1
 white_initial_odometry = [0.6, 2.8, -math.pi / 2]
-black_initial_odometry = [2.2, 2.8, -math.pi / 2]
+black_initial_odometry = [1.4, 1.4, math.pi / 2] #[2.2, 2.8, -math.pi / 2]
 white_destination_cell = [3, 3]
 black_destination_cell = [3, 3]
 
@@ -75,8 +75,8 @@ class Factory:
 
     def speed_generators(self) -> list:
         return [
-            HardcodedSpeedGenerator(),
-            self.obstacle_trajectory_generator(),
+            # HardcodedSpeedGenerator(),
+            # self.obstacle_trajectory_generator(),
             self.ball_following_speed_generator(),
             self.final_trajectory_speed_generator(),
             #self.robot_finder_speed_generator(),
@@ -258,6 +258,7 @@ def save_visited_points_in_graph(visited_points: list, filename: str):
 def stop_robot(factory):
     factory.left_wheel().set_speed(0)
     factory.right_wheel().set_speed(0)
+    factory.claw().set_position(0)
     try:
         factory.odometry().stop()
     except Exception as ex:

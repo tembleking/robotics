@@ -4,19 +4,18 @@ from robotics.sensors import camera
 
 class FinalTrajectorySpeedGenerator:
     def __init__(self, isWhite: bool, camera: camera):
-        self._center_white = [
-            Location.from_angle_degrees(Point(2, 2), -200),        # Angle unknown at the beginning
+        self._center_white = [      # Angle unknown at the beginning
             Location.from_angle_degrees(Point(2, 2), 90)
         ]
         
-        self._center_black = [
-            Location.from_angle_degrees(Point(0.8, 2), -200),      # Angle unknown at the beginning
+        self._center_black = [      # Angle unknown at the beginning
             Location.from_angle_degrees(Point(0.8, 2), 90)
         ]
         
         self._speeds_center = [
-            (0.1, 0),
             (0, 0.25),
+            (0.1, 0),
+            (0, 0.25)
         ]
         
         # Trajectories initiates on the left 
@@ -54,24 +53,40 @@ class FinalTrajectorySpeedGenerator:
         self._camera = camera
         self._door = None # None: Unkown, Other: ("left" | "right")
         self._isWhite = isWhite
+        self.is_init = False
         
     def get_speed(self, current_location: Location):
         # Refactor: Make it multiprocess and instead of doing a state
         #           machine, do 2 points (go to center and look up)
         #           and return (0, 0) while the thread is executing.
         #           After it finishes, continue poping locations
+
+        # If first time, init path
+        if not self.is_init:
+            location = self._get_next_center_location()
+            target_angle = math.atan2(location.origin.y - current_location.origin.y,
+                                      location.origin.x - current_location.origin.x)
+            if self._isWhite:
+                self._center_white = [Location.from_angle_radians(current_location.origin, target_angle),
+                                      Location.from_angle_radians(Point(2, 2), target_angle)] + \
+                                     self._center_white
+                print(self._center_white)
+            else:
+                self._center_black = [Location.from_angle_radians(current_location.origin, target_angle),
+                                      Location.from_angle_radians(Point(0.8, 2), target_angle)] + \
+                                     self._center_black
+                print(self._center_black)
+            self.is_init = True
         
         # Going to the center
-        if not self._has_reached_center(): 
+        if not self._has_reached_center():
             location = self._get_next_center_location()
             relative_location = self._get_next_relative_location(current_location, location)
             
             if self._has_arrived(relative_location):
+                print("[FinalGenerator]: has arrived")
                 self._pop_next_center_location()
-           
-            # We still don't know the angle to reach
-            if location.angle_degrees() == -200:
-                location = Location.from_angle_degrees(Point(location.origin.x, location.origin.y), current_location.angle_degrees())
+                self._pop_next_center_speed()
                 
             return self._current_center_speed(current_location)
         
@@ -180,9 +195,10 @@ class FinalTrajectorySpeedGenerator:
         distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
         has_arrived = self._has_arrived_angle(next_relative_location) and self._has_arrived_distance(
             next_relative_location)
-        print(
-            '[HardcodedSpeedGenerator]: distance_to_arrive: %s, last_point_distance: %s, angle_to_arrive=%s, has_arrived=%s' % (
-                distance_to_arrive, self.last_point_distance, angle_to_arrive, has_arrived))
+        if has_arrived:
+            print(
+                '[FinalGenerator]: distance_to_arrive: %s, last_point_distance: %s, angle_to_arrive=%s, has_arrived=%s' % (
+                    distance_to_arrive, self.last_point_distance, angle_to_arrive, has_arrived))
         return has_arrived
     
     def _get_next_relative_location(self, current_location: Location, next_location: Location) -> Location:
