@@ -1,5 +1,6 @@
 import math
 import time
+import traceback
 
 import cv2
 import matplotlib.pyplot
@@ -33,7 +34,7 @@ light_sensor_port = brickpi3.BrickPi3.PORT_4
 compass_port = brickpi3.BrickPi3.PORT_1
 gyro_port = brickpi3.BrickPi3.PORT_1
 white_initial_odometry = [0.6, 2.8, -math.pi / 2]
-black_initial_odometry = [1.4, 1.4, math.pi / 2] #[2.2, 2.8, -math.pi / 2]
+black_initial_odometry = [2.2, 2.8, -math.pi / 2]
 white_destination_cell = [3, 3]
 black_destination_cell = [3, 3]
 
@@ -75,8 +76,8 @@ class Factory:
 
     def speed_generators(self) -> list:
         return [
-            # HardcodedSpeedGenerator(),
-            # self.obstacle_trajectory_generator(),
+            HardcodedSpeedGenerator(),
+            self.obstacle_trajectory_generator(),
             self.ball_following_speed_generator(),
             self.final_trajectory_speed_generator(),
             #self.robot_finder_speed_generator(),
@@ -144,7 +145,7 @@ class Factory:
     def camera(self):
         if self._camera is None:
             video_capture = cv2.VideoCapture(0)
-            video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+            video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 0)
             self._camera = Camera(video_capture,
                                   "r2d2" if self.light_sensor_is_white() else "bb8",
                                   self.r2d2_template(),
@@ -155,10 +156,11 @@ class Factory:
         return BallFollowingSpeedGenerator(
             camera=self.camera(),
             robot=self.robot(),
-            area_goal=198,
-            distance_goal=234,
+            area_goal=185,
+            distance_goal=295,
             distance_damping=0.001,
             area_damping=0.001,
+            isWhiteCircuit=self.light_sensor_is_white()
         )
     def robot_finder_speed_generator(self):
         return RobotFinderSpeedGenerator(
@@ -388,6 +390,7 @@ def run():
     #     # display_visited_points_in_graph(ctrl.visited_points)
     except BaseException as e:
         print('captured exception: %s' % e)
+        print(traceback.format_exc())
     finally:
         stop_robot(factory)
         BP.reset_all()

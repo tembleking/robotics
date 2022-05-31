@@ -1,6 +1,9 @@
 import time
 
 from robotics.geometry import Location, Point
+from robotics.robot.final_trajectory_speed_generator import FinalTrajectorySpeedGenerator
+from robotics.robot.hardcoded_speed_generator import HardcodedSpeedGenerator
+from robotics.robot.obstacle_trajectory_speed_generator import ObstacleTrajectorySpeedGenerator
 from robotics.robot.robot import Robot
 
 
@@ -15,6 +18,11 @@ class Controller:
     def start(self):
         self._robot.start_odometry()
         for speed_generator in self._speed_generators:
+            print("using new controller")
+            if isinstance(speed_generator, ObstacleTrajectorySpeedGenerator):
+                    self._robot.odometry.disable_gyro()
+            else:
+                self._robot.odometry.enable_gyro()
             while True:
                 start = time.time()
 
@@ -32,10 +40,11 @@ class Controller:
                     time.sleep(sleep_time)
 
             # fixme(fede): Refactor this to a "after_reaching" method in the speed generators
-            if not self._has_finished_s:
-                location = self._robot.location()
-                new_location = Location.from_angle_radians(Point(location.origin.x, location.origin.y + 0.1),
-                                                           location.angle_radians())
-                self._robot.set_location(new_location)
+            # if not self._has_finished_s:
+            #     self._has_finished_s = True
+            #     location = self._robot.location()
+            #     new_location = Location.from_angle_radians(Point(location.origin.x, location.origin.y + 0.1),
+            #                                                location.angle_radians())
+            #     self._robot.set_location(new_location)
         self._robot.stop_odometry()
         self._robot.set_speed(0, 0)

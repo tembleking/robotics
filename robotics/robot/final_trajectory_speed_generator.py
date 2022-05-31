@@ -1,9 +1,14 @@
 import math
+import time
+import traceback
+from typing import Tuple
 from robotics.geometry import Direction, Location, Point
-from robotics.sensors import camera
+from robotics.sensors.camera import Camera
 
+MAX_ANGULAR_SPEED = 0.25
+MAX_LINEAL_SPEED = 0.1
 class FinalTrajectorySpeedGenerator:
-    def __init__(self, isWhite: bool, camera: camera):
+    def __init__(self, isWhite: bool, camera: Camera):
         self._center_white = [      # Angle unknown at the beginning
             Location.from_angle_degrees(Point(2, 2), 90)
         ]
@@ -13,24 +18,24 @@ class FinalTrajectorySpeedGenerator:
         ]
         
         self._speeds_center = [
-            (0, 0.25),
+            (0, MAX_ANGULAR_SPEED),
             (0.1, 0),
-            (0, 0.25)
+            (0, MAX_ANGULAR_SPEED)
         ]
         
         # Trajectories initiates on the left 
-        self._trajectory_white = [
+        self._trajectory_left_white = [
             Location.from_angle_degrees(Point(2, 2), 135),      # Turn Left to make a diagonal
-            Location.from_angle_degrees(Point(1.3, 2.6), 135),
-            Location.from_angle_degrees(Point(1.3, 2.6), 90),   # Turn Right to leave the circuit
-            Location.from_angle_degrees(Point(1.3, 3.2), 90),   # Leave
+            Location.from_angle_degrees(Point(1.4, 2.6), 135),
+            Location.from_angle_degrees(Point(1.4, 2.6), 90),   # Turn Right to leave the circuit
+            Location.from_angle_degrees(Point(1.4, 3.2), 90),   # Leave
         ]
         
-        self._trajectory_black = [
-            Location.from_angle_degrees(Point(0.8, 2), 135),    # Turn Left to make a diagonal
-            Location.from_angle_degrees(Point(0.2, 2.6), 135),
-            Location.from_angle_degrees(Point(0.2, 2.6), 90),   # Turn Right to leave the circuit
-            Location.from_angle_degrees(Point(0.2, 3.2), 90),   # Leave
+        self._trajectory_right_white = [
+            Location.from_angle_degrees(Point(2, 2), 45),    # Turn Left to make a diagonal
+            Location.from_angle_degrees(Point(2.6, 2.6), 45),
+            Location.from_angle_degrees(Point(2.6, 2.6), 90),   # Turn Right to leave the circuit
+            Location.from_angle_degrees(Point(2.6, 3), 90),   # Leave
         ]
         
         self._speeds_trajectory_left = [
@@ -54,6 +59,20 @@ class FinalTrajectorySpeedGenerator:
         self._door = None # None: Unkown, Other: ("left" | "right")
         self._isWhite = isWhite
         self.is_init = False
+        self._homography_done = False
+
+        if(not isWhite):
+            for i in range(len(self._trajectory_left_white)):
+                self._trajectory_left_white[i] = Location.from_angle_degrees(Point(
+                    self._trajectory_left_white[i].origin.x - 1.2,
+                    self._trajectory_left_white[i].origin.y
+                ), self._trajectory_left_white[i].angle_degrees())
+
+                self._trajectory_right_white[i] = Location.from_angle_degrees(Point(
+                    self._trajectory_right_white[i].origin.x - 1.2,
+                    self._trajectory_right_white[i].origin.y
+                ), self._trajectory_right_white[i].angle_degrees())
+
         
     def get_speed(self, current_location: Location):
         # Refactor: Make it multiprocess and instead of doing a state
@@ -84,23 +103,25 @@ class FinalTrajectorySpeedGenerator:
             relative_location = self._get_next_relative_location(current_location, location)
             
             if self._has_arrived(relative_location):
-                print("[FinalGenerator]: has arrived")
+                print("[FinalGenerator]: (Center) has arrived")
+                self._reset_last_positions()
                 self._pop_next_center_location()
-                self._pop_next_center_speed()
+                return self._pop_next_center_speed()
                 
             return self._current_center_speed(current_location)
-        
+        if not self._homography_done:
+            self._homography_done = True
+            return 0, 0
         # Looking for the robots
         elif self._door == None:
-            self._door = camera.get_homography_robot_position()
-            self._door = "right" if self._door == None else self._door
-            if self._door == "right":
-                for i in range(len(self._trajectory_white)):
-                    self._trajectory_white[i] = Location(
-                        self._trajectory_white[i][0] + 1.2, self._trajectory_white[i][1])
-                    
-                    self._trajectory_black[i] = Location(
-                        self._trajectory_black[i][0] + 1.2, self._trajectory_black[i][1])
+            time.sleep(5)
+            try:
+                self._door = self._camera.get_homography_robot_position()
+            except Exception:
+                print(traceback.format_exc())
+            if self._door is None:
+                return 0, 0
+            self._door = "right" if self._door is None else self._door
             return 0, 0
         
         # Leaving the circuit
@@ -109,13 +130,20 @@ class FinalTrajectorySpeedGenerator:
             relative_location = self._get_next_relative_location(current_location, location)
             
             if self._has_arrived(relative_location):
+                print("[FinalGenerator]: (Leaving) has arrived")
+                self._reset_last_positions()
                 self._pop_next_circuit_location()
-                self._pop_next_location_speed()
+                return self._pop_next_location_speed()
             
             return self._current_trajectory_speed()
-
+        print("Es este")
         return None
-    
+
+    def _reset_last_positions(self):
+        self.last_point_distance = math.inf
+        self.last_point_angle = math.inf
+        self._has_arrived_angle_var = False
+
     # Going to the Center
     def _get_next_center_location(self):
         if self._isWhite:
@@ -125,13 +153,13 @@ class FinalTrajectorySpeedGenerator:
     
     def _pop_next_center_location(self):
         if self._isWhite:
-            self._center_white.pop()
+            self._center_white.pop(0)
             return
         
-        self._center_black.pop()
+        self._center_black.pop(0)
         
-    def _pop_next_center_speed(self):
-        self._speeds_center.pop()
+    def _pop_next_center_speed(self) -> Tuple[float, float]:
+        return self._speeds_center.pop(0)
             
     def _has_reached_center(self):
         if self._isWhite:
@@ -141,35 +169,33 @@ class FinalTrajectorySpeedGenerator:
     
     # Leaving the Circuit
     def _get_next_circuit_location(self):
-        if self._isWhite:
-            return self._trajectory_white[0]
+        if self._door == "left":
+            return self._trajectory_left_white[0]
         
-        return self._trajectory_black[0]
+        return self._trajectory_right_white[0]
     
     def _pop_next_circuit_location(self):
-        if self._isWhite:
-            self._trajectory_white.pop()
+        if self._door == "left":
+            self._trajectory_left_white.pop(0)
             return
         
-        self._trajectory_black.pop()
+        self._trajectory_right_white.pop(0)
         
     def _has_left(self):
-        if self._isWhite:
-            return len(self._trajectory_white) == 0
+        if self._door == "left":
+            return len(self._trajectory_left_white) == 0
         
-        return len(self._center_black) == 0
+        return len(self._trajectory_right_white) == 0
     
     def _pop_next_location_speed(self):
         if self._door == "left":
-            self._speeds_left.pop()
-            return
-        
-        self._speeds_right.pop()
+            return self._speeds_trajectory_left.pop(0)
+        return self._speeds_trajectory_right.pop(0)
     
-    def _current_center_speed(self, current_location: Location) -> (float, float):
+    def _current_center_speed(self, current_location: Location) -> Tuple[float, float]:
         return self._speeds_center[0]
     
-    def _current_trajectory_speed(self) -> (float, float):
+    def _current_trajectory_speed(self) -> Tuple[float, float]:
         if self._door == "left":
             return self._speeds_trajectory_left[0]
         
