@@ -83,13 +83,8 @@ class HardcodedSpeedGenerator:
         return has_arrived
 
     def _has_arrived(self, next_relative_location: Location) -> bool:
-        angle_to_arrive = abs(next_relative_location.angle_radians())
-        distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
         has_arrived = self._has_arrived_angle(next_relative_location) and self._has_arrived_distance(
             next_relative_location)
-        print(
-            '[HardcodedSpeedGenerator]: distance_to_arrive: %s, last_point_distance: %s, angle_to_arrive=%s, has_arrived=%s' % (
-                distance_to_arrive, self.last_point_distance, angle_to_arrive, has_arrived))
         return has_arrived
 
     def _current_speed(self, current_location: Location) -> (float, float):

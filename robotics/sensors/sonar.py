@@ -10,7 +10,6 @@ class Sonar:
     def obstacle_detected(self) -> bool:
         try:
             distance = self.BP.get_sensor(self.connected_port)
-            print('Sensor distance: {}'.format(distance))
             return 0 < distance < 12
         except brickpi3.SensorError:
             return False
