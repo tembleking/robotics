@@ -3,17 +3,23 @@ import time
 import traceback
 from typing import Tuple
 from robotics.geometry import Direction, Location, Point
+from robotics.robot.robot import Robot
 from robotics.sensors.camera import Camera
+from robotics.sensors.sonar import Sonar
 
 MAX_ANGULAR_SPEED = 0.25
 MAX_LINEAL_SPEED = 0.1
+
+
 class FinalTrajectorySpeedGenerator:
-    def __init__(self, isWhite: bool, camera: Camera):
-        self._center_white = [      # Angle unknown at the beginning
+    def __init__(self, isWhite: bool, camera: Camera, sonar: Sonar, robot: Robot):
+        self._sonar = sonar
+        self._robot = robot
+        self._center_white = [  # Angle unknown at the beginning
             Location.from_angle_degrees(Point(2, 2), 90)
         ]
 
-        self._center_black = [      # Angle unknown at the beginning
+        self._center_black = [  # Angle unknown at the beginning
             Location.from_angle_degrees(Point(0.8, 2), 90)
         ]
 
@@ -25,17 +31,17 @@ class FinalTrajectorySpeedGenerator:
 
         # Trajectories initiates on the left 
         self._trajectory_left_white = [
-            Location.from_angle_degrees(Point(2, 2), 135),      # Turn Left to make a diagonal
+            Location.from_angle_degrees(Point(2, 2), 135),  # Turn Left to make a diagonal
             Location.from_angle_degrees(Point(1.5, 2.6), 135),
-            Location.from_angle_degrees(Point(1.5, 2.6), 90),   # Turn Right to leave the circuit
-            Location.from_angle_degrees(Point(1.5, 3.2), 90),   # Leave
+            Location.from_angle_degrees(Point(1.5, 2.6), 90),  # Turn Right to leave the circuit
+            Location.from_angle_degrees(Point(1.5, 3.2), 90),  # Leave
         ]
 
         self._trajectory_right_white = [
-            Location.from_angle_degrees(Point(2, 2), 45),    # Turn Left to make a diagonal
+            Location.from_angle_degrees(Point(2, 2), 45),  # Turn Left to make a diagonal
             Location.from_angle_degrees(Point(2.5, 2.6), 45),
-            Location.from_angle_degrees(Point(2.5, 2.6), 90),   # Turn Right to leave the circuit
-            Location.from_angle_degrees(Point(2.5, 3), 90),   # Leave
+            Location.from_angle_degrees(Point(2.5, 2.6), 90),  # Turn Right to leave the circuit
+            Location.from_angle_degrees(Point(2.5, 3), 90),  # Leave
         ]
 
         self._speeds_trajectory_left = [
@@ -56,12 +62,12 @@ class FinalTrajectorySpeedGenerator:
         self._has_arrived_angle_var = False
 
         self._camera = camera
-        self._door = None # None: Unkown, Other: ("left" | "right")
+        self._door = None  # None: Unkown, Other: ("left" | "right")
         self._isWhite = isWhite
         self.is_init = False
         self._homography_done = False
 
-        if(not isWhite):
+        if (not isWhite):
             for i in range(len(self._trajectory_left_white)):
                 self._trajectory_left_white[i] = Location.from_angle_degrees(Point(
                     self._trajectory_left_white[i].origin.x - 1.2,
@@ -72,7 +78,6 @@ class FinalTrajectorySpeedGenerator:
                     self._trajectory_right_white[i].origin.x - 1.2,
                     self._trajectory_right_white[i].origin.y
                 ), self._trajectory_right_white[i].angle_degrees())
-
 
     def get_speed(self, current_location: Location):
         # Refactor: Make it multiprocess and instead of doing a state
@@ -87,7 +92,7 @@ class FinalTrajectorySpeedGenerator:
                                       location.origin.x - current_location.origin.x)
             angle = target_angle - current_location.angle_radians()
             if 0 <= angle <= math.pi or \
-                angle < -math.pi:
+                    angle < -math.pi:
                 self._speeds_center[2] = (self._speeds_center[2][0], -self._speeds_center[2][1])
             else:
                 self._speeds_center[0] = (self._speeds_center[0][0], -self._speeds_center[0][1])
@@ -122,6 +127,7 @@ class FinalTrajectorySpeedGenerator:
         elif self._door == None:
             time.sleep(5)
             try:
+                self._recalculate_y_position_with_sonar()
                 self._door = self._camera.get_homography_robot_position()
             except Exception:
                 print(traceback.format_exc())
@@ -207,7 +213,6 @@ class FinalTrajectorySpeedGenerator:
 
         return self._speeds_trajectory_right[0]
 
-
     # Funtions from Harcoded Speed Generator
     def _has_arrived_angle(self, next_relative_location: Location) -> bool:
         angle_to_arrive = abs(next_relative_location.angle_radians())
@@ -241,4 +246,11 @@ class FinalTrajectorySpeedGenerator:
         next_location_from_current_location = next_location.seen_from_other_location(world_seen_from_current_location)
         return next_location_from_current_location
 
+    def _recalculate_y_position_with_sonar(self):
+        robot_location = self._robot.location()
+        self._robot.set_speed(0, 0)
+        new_location = Location.from_angle_radians(Point(robot_location.origin.x, 2.8 - self._sonar.distance()),
+                                                   robot_location.angle_radians())
 
+        print("[FinalGenerator]: New location {}".format(new_location))
+        self._robot.set_location(new_location)

@@ -88,7 +88,7 @@ class Factory:
         return ObstacleTrajectorySpeedGenerator(self.trajectory_generator(), obstacle_detector=self.sonar())
 
     def final_trajectory_speed_generator(self):
-        return FinalTrajectorySpeedGenerator(self.light_sensor_is_white(), self.camera())
+        return FinalTrajectorySpeedGenerator(self.light_sensor_is_white(), self.camera(), sonar=self.sonar(), robot=self.robot())
 
     def controller(self):
 
