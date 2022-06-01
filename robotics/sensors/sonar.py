@@ -14,3 +14,14 @@ class Sonar:
             return 0 < distance < 12
         except brickpi3.SensorError:
             return False
+
+    def distance(self) -> float:
+        try:
+            distance = 0
+            for i in range(1000):
+                distance += self.BP.get_sensor(self.connected_port)
+            distance /= 1000
+            print('Sonar distance: {}'.format(distance))
+            return distance / 100
+        except brickpi3.SensorError:
+            return 0.

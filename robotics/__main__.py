@@ -38,6 +38,7 @@ black_initial_odometry = [2.2, 2.8, -math.pi / 2]
 white_destination_cell = [3, 3]
 black_destination_cell = [3, 3]
 
+
 class Factory:
     def __init__(self, BP: brickpi3.BrickPi3, white_map: bytes, black_map: bytes):
         self._robot = None
@@ -80,7 +81,7 @@ class Factory:
             self.obstacle_trajectory_generator(),
             self.ball_following_speed_generator(),
             self.final_trajectory_speed_generator(),
-            #self.robot_finder_speed_generator(),
+            # self.robot_finder_speed_generator(),
         ]
 
     def obstacle_trajectory_generator(self):
@@ -95,6 +96,7 @@ class Factory:
             robot=self.robot(),
             polling_period=0.01,
             speed_generators=self.speed_generators(),
+            sonar=self.sonar(),
         )
 
     def odometry(self):
@@ -162,12 +164,14 @@ class Factory:
             area_damping=0.001,
             isWhiteCircuit=self.light_sensor_is_white()
         )
+
     def robot_finder_speed_generator(self):
         return RobotFinderSpeedGenerator(
             is_white_map=self.light_sensor_is_white(),
             camera=self.camera(),
             obstacle_speed_generator=self.obstacle_trajectory_generator(),
         )
+
     def load_white_map(self) -> Map:
         return Map(white_map_contents())
 
@@ -285,45 +289,13 @@ def map_contents():
 
 
 def white_map_contents():
-    return b"""\
-7 7 400
-0 0 0 1 0 0 0 0 0 0 0 0 0 0 0
-0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 0 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 0 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 0 1 0 0 0 0 0 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-"""
+    with open("mapaA_CARRERA.txt", "r") as file:
+        return file.read()
 
 
 def black_map_contents():
-    return b"""\
-7 7 400
-0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
-0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 0 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 0 1 1 0
-0 1 0 0 0 0 0 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-"""
+    with open("mapaB_CARRERA.txt", "r") as file:
+        return file.read()
 
 
 def run():

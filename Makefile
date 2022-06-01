@@ -18,7 +18,7 @@ push-to-robot:
 	ssh pi@$(shell cat robot_ip) "pip install *.whl"
 
 get-robot-ip:
-	nmap 192.168.213.* -sP | \
+	nmap 192.168.30.* -sP | \
 	grep "Nmap scan report" | \
 	cut -d' ' -f5 | \
 	xargs -I% sh -c \

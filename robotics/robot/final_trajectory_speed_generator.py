@@ -26,16 +26,16 @@ class FinalTrajectorySpeedGenerator:
         # Trajectories initiates on the left 
         self._trajectory_left_white = [
             Location.from_angle_degrees(Point(2, 2), 135),      # Turn Left to make a diagonal
-            Location.from_angle_degrees(Point(1.4, 2.6), 135),
-            Location.from_angle_degrees(Point(1.4, 2.6), 90),   # Turn Right to leave the circuit
-            Location.from_angle_degrees(Point(1.4, 3.2), 90),   # Leave
+            Location.from_angle_degrees(Point(1.5, 2.6), 135),
+            Location.from_angle_degrees(Point(1.5, 2.6), 90),   # Turn Right to leave the circuit
+            Location.from_angle_degrees(Point(1.5, 3.2), 90),   # Leave
         ]
         
         self._trajectory_right_white = [
             Location.from_angle_degrees(Point(2, 2), 45),    # Turn Left to make a diagonal
-            Location.from_angle_degrees(Point(2.6, 2.6), 45),
-            Location.from_angle_degrees(Point(2.6, 2.6), 90),   # Turn Right to leave the circuit
-            Location.from_angle_degrees(Point(2.6, 3), 90),   # Leave
+            Location.from_angle_degrees(Point(2.5, 2.6), 45),
+            Location.from_angle_degrees(Point(2.5, 2.6), 90),   # Turn Right to leave the circuit
+            Location.from_angle_degrees(Point(2.5, 3), 90),   # Leave
         ]
         
         self._speeds_trajectory_left = [

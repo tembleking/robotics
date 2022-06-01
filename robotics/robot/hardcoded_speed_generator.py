@@ -10,7 +10,7 @@ class HardcodedSpeedGenerator:
             Location.from_angle_degrees(Point(0.6, 2.55), -179),
             Location.from_angle_degrees(Point(0.6, 1.75), -2),
             Location.from_angle_degrees(Point(0.6, 1.0), -179),
-            Location.from_angle_degrees(Point(0.6, 1.0), -90),
+            # Location.from_angle_degrees(Point(0.6, 1.0), -90),
             # Location.from_angle_degrees(Point(0.6, 0.9), -90),
         ]
         self._trajectory_black = [
@@ -18,15 +18,15 @@ class HardcodedSpeedGenerator:
             Location.from_angle_degrees(Point(2.2, 2.55), -2),
             Location.from_angle_degrees(Point(2.2, 1.75), -179),
             Location.from_angle_degrees(Point(2.2, 1.0), -2),
-            Location.from_angle_degrees(Point(2.2, 1.0), -90),
+            # Location.from_angle_degrees(Point(2.2, 1.0), -90),
             # Location.from_angle_degrees(Point(2.2, 0.9), -90),
         ]
         self._speeds = [
             (0.1, 0),
             (0, -0.25),
-            (0.1/1.5, 0.25/1.5),
-            (0.1/1.5, -(0.1/0.35)/1.5),
-            (0.0, 0.25),
+            (0.1, 0.25),
+            (0.1, -(0.1/0.375)),
+            # (0.0, 0.25),
             # (0.1, 0),
         ]
         self.last_point_distance = math.inf

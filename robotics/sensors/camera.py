@@ -178,7 +178,7 @@ class Camera:
         #bb8_x = self._match_images(self.bb8_template, img)
         bb8_x = 300
         if r2d2_x is None or bb8_x is None:
-            return None
+            return "left" # Fallback
         if target == "r2d2":
             print("Target is r2d2")
             if r2d2_x < bb8_x:
