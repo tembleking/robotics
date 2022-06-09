@@ -12,6 +12,7 @@ class ObstacleTrajectorySpeedGenerator:
         self.last_point_angle = math.inf
         self._has_arrived_angle_var = False
         self.started = False
+        self.last_speed = (0, 0)
 
     def get_speed(self, current_location: Location):
         if not self.started:
@@ -23,18 +24,20 @@ class ObstacleTrajectorySpeedGenerator:
 
         if self._has_arrived(next_relative_location):
             self._mark_point_as_visited()
-            return 0, 0
+            return self.last_speed
 
         if self._has_arrived_angle(next_relative_location):
             if self.obstacle_detector.obstacle_detected():
                 self.last_point_distance = math.inf
                 self.last_point_angle = math.inf
                 self._has_arrived_angle_var = False
-                print('[TrajectoryController]: obstacle detected')
                 self.trajectory_generator.mark_wall_ahead()
-                return 0, 0
+                return self.last_speed
+            # return 0.1, 0
 
-        return self._get_next_velocities(next_relative_location)
+        new_speed = self._get_next_velocities(next_relative_location)
+        self.last_speed = new_speed
+        return new_speed
 
     def _has_arrived_angle(self, next_relative_location: Location) -> bool:
         angle_to_arrive = abs(next_relative_location.angle_radians())
@@ -49,13 +52,8 @@ class ObstacleTrajectorySpeedGenerator:
         return has_arrived
 
     def _has_arrived(self, next_relative_location: Location) -> bool:
-        angle_to_arrive = abs(next_relative_location.angle_radians())
-        distance_to_arrive = Direction(next_relative_location.origin.x, next_relative_location.origin.y).modulus()
         has_arrived = self._has_arrived_angle(next_relative_location) and self._has_arrived_distance(
             next_relative_location)
-        print(
-            '[TrajectoryController]: distance_to_arrive: %s, last_point_distance: %s, angle_to_arrive=%s, has_arrived=%s' % (
-                distance_to_arrive, self.last_point_distance, angle_to_arrive, has_arrived))
         return has_arrived
 
     def _mark_point_as_visited(self):
@@ -77,9 +75,6 @@ class ObstacleTrajectorySpeedGenerator:
         new_angle_with_correction = math.atan2(next_point.origin.y - current_location.origin.y,
                                                next_point.origin.x - current_location.origin.x)
         next_point = Location.from_angle_radians(next_point.origin, new_angle_with_correction)
-
-        print('[TrajectoryController]: current location seen from world: %s %s' % (
-            self._position_to_cell(current_location.origin), current_location))
         if current_location is None:
             return None
 
@@ -88,8 +83,8 @@ class ObstacleTrajectorySpeedGenerator:
         return next_location_from_current_location
 
     def _get_next_velocities(self, next_relative_location: Location):
-        if next_relative_location.angle_radians() > 0.025:
+        if next_relative_location.angle_radians() > 0.05:
             return 0, 0.25
-        if next_relative_location.angle_radians() < -0.025:
+        if next_relative_location.angle_radians() < -0.05:
             return 0, -0.25
-        return 0.1, 0
+        return 0.10, 0

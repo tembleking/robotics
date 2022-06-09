@@ -1,3 +1,5 @@
+import os
+import sys
 from typing import List, Tuple
 
 import cv2
@@ -26,7 +28,7 @@ class Camera:
         self.bb8_template = bb8_template
         self.min_match_count = 20
         self.min_match_object_found = 15
-
+        self.count = 0
     def _get_frame(self) -> np.ndarray:
         ok, frame = self.video_capturer.read()
         if ok:
@@ -47,9 +49,12 @@ class Camera:
         return detections
 
     def get_frame(self) -> np.ndarray:
-        frame = self._get_frame()
-        frame = self._get_frame() if frame is None else frame
-        frame = self._get_frame() if frame is None else frame
+        try:
+            frame = self._get_frame()
+            frame = self._get_frame() if frame is None else frame
+            frame = self._get_frame() if frame is None else frame
+        except Exception:
+            frame = None
         return frame
 
     def get_blob_position_and_size(self) -> Tuple[Point, float]:
@@ -72,12 +77,14 @@ class Camera:
         print('Mean of ball within claws: %s' % mean)
         return mean > 0.25
 
-    def _match_images(self, img1_bgr: np.ndarray, img2_bgr: np.ndarray):
+    def _match_images(self, reference_image: np.ndarray, img2_bgr: np.ndarray):
      
         # Feature extractor uses grayscale images
-        img1 = cv2.cvtColor(img1_bgr, cv2.COLOR_BGR2GRAY)
+        img1 = cv2.cvtColor(reference_image, cv2.COLOR_BGR2GRAY)
         img2 = cv2.cvtColor(img2_bgr, cv2.COLOR_BGR2GRAY)
-        
+        filename = "homograpy" + str(self.count) + ".png"
+        self.count += 1
+        cv2.imwrite(filename, img2_bgr)
         # Create a detector with the parameters
         ver = (cv2.__version__).split('.')
         if int(ver[0]) < 3: # CURRENT RASPBERRY opencv version is 2.4.9
@@ -140,6 +147,7 @@ class Camera:
             dst = cv2.perspectiveTransform(pts,H_21)
             img2_res = cv2.polylines(img2_bgr, [np.int32(dst)], True, 
                                      color=(255,255,255), thickness=3)
+            cv2.imwrite("homography_matches.png", img2_res)
             found = (dst[3,0,0] - dst[0,0,0]) / 2 + dst[0,0,0]
             print("ROBUST matches found - %d (out of %d) --> OBJECT FOUND" % (np.sum(matchesMask), len(good)))
         else:
@@ -152,7 +160,13 @@ class Camera:
 
     def get_homography_robot_position(self) -> str:
         img = self.get_frame()
-        if img == None:
+        img = self.get_frame()
+        img = self.get_frame()
+        img = self.get_frame()
+        img = self.get_frame()
+        while img is None:
+            img = self.get_frame()
+        if img is None:
             return None
         target = self._robot_to_find
         if target != "r2d2" and target != "bb8":
@@ -160,10 +174,11 @@ class Camera:
             return None
         
         r2d2_x = self._match_images(self.r2d2_template, img)
-        bb8_x = self._match_images(self.bb8_template, img)
-
+        print(r2d2_x)
+        #bb8_x = self._match_images(self.bb8_template, img)
+        bb8_x = 300
         if r2d2_x is None or bb8_x is None:
-            return None
+            return "left" # Fallback
         if target == "r2d2":
             print("Target is r2d2")
             if r2d2_x < bb8_x:

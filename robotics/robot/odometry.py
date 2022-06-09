@@ -29,6 +29,7 @@ class Odometry:
             self.x.value, self.y.value, self.th.value = initial_location
             self.initial_th_value = initial_location[2]
         self.gyro = gyro
+        self.use_gyro = True
 
     def start(self):
         self.inner_process.start()
@@ -36,6 +37,12 @@ class Odometry:
     def stop(self):
         self.finished.value = True
         self.inner_process.join()
+    
+    def enable_gyro(self):
+        self.use_gyro = True
+
+    def disable_gyro(self):
+        self.use_gyro = False
 
     def read_speed(self):
         left_speed = self.left_motor.get_last_angle() / self.polling_period
@@ -44,8 +51,8 @@ class Odometry:
         transformation_matrix = np.matrix([[self.wheel_radius / 2, self.wheel_radius / 2],
                                            [self.wheel_radius / self.axis_length,
                                             -self.wheel_radius / self.axis_length]])
-
-        result = transformation_matrix.dot(np.matrix([[right_speed], [left_speed]]))
+        if self.use_gyro:
+            result = transformation_matrix.dot(np.matrix([[right_speed], [left_speed]]))
         return result[0, 0], result[1, 0]
 
     def location(self) -> Location:
@@ -67,7 +74,7 @@ class Odometry:
                                                                                                self.th.value,
                                                                                                v, w)
 
-                self.th.value = self.gyro.get_angle()
+                self.th.value = (self.gyro.get_angle() + self.th.value) / 2
 
             end_time = time.time()
             sleep_time = self.polling_period - (end_time - initial_time)

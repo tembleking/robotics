@@ -1,5 +1,6 @@
 import math
 import time
+import traceback
 
 import cv2
 import matplotlib.pyplot
@@ -36,6 +37,7 @@ white_initial_odometry = [0.6, 2.8, -math.pi / 2]
 black_initial_odometry = [2.2, 2.8, -math.pi / 2]
 white_destination_cell = [3, 3]
 black_destination_cell = [3, 3]
+
 
 class Factory:
     def __init__(self, BP: brickpi3.BrickPi3, white_map: bytes, black_map: bytes):
@@ -79,14 +81,14 @@ class Factory:
             self.obstacle_trajectory_generator(),
             self.ball_following_speed_generator(),
             self.final_trajectory_speed_generator(),
-            #self.robot_finder_speed_generator(),
+            # self.robot_finder_speed_generator(),
         ]
 
     def obstacle_trajectory_generator(self):
         return ObstacleTrajectorySpeedGenerator(self.trajectory_generator(), obstacle_detector=self.sonar())
 
     def final_trajectory_speed_generator(self):
-        return FinalTrajectorySpeedGenerator(self.light_sensor_is_white(), self.camera())
+        return FinalTrajectorySpeedGenerator(self.light_sensor_is_white(), self.camera(), sonar=self.sonar(), robot=self.robot())
 
     def controller(self):
 
@@ -94,6 +96,7 @@ class Factory:
             robot=self.robot(),
             polling_period=0.01,
             speed_generators=self.speed_generators(),
+            sonar=self.sonar(),
         )
 
     def odometry(self):
@@ -144,7 +147,7 @@ class Factory:
     def camera(self):
         if self._camera is None:
             video_capture = cv2.VideoCapture(0)
-            video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+            video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 0)
             self._camera = Camera(video_capture,
                                   "r2d2" if self.light_sensor_is_white() else "bb8",
                                   self.r2d2_template(),
@@ -155,17 +158,20 @@ class Factory:
         return BallFollowingSpeedGenerator(
             camera=self.camera(),
             robot=self.robot(),
-            area_goal=198,
-            distance_goal=234,
+            area_goal=185,
+            distance_goal=295,
             distance_damping=0.001,
             area_damping=0.001,
+            isWhiteCircuit=self.light_sensor_is_white()
         )
+
     def robot_finder_speed_generator(self):
         return RobotFinderSpeedGenerator(
             is_white_map=self.light_sensor_is_white(),
             camera=self.camera(),
             obstacle_speed_generator=self.obstacle_trajectory_generator(),
         )
+
     def load_white_map(self) -> Map:
         return Map(white_map_contents())
 
@@ -258,6 +264,7 @@ def save_visited_points_in_graph(visited_points: list, filename: str):
 def stop_robot(factory):
     factory.left_wheel().set_speed(0)
     factory.right_wheel().set_speed(0)
+    factory.claw().set_position(0)
     try:
         factory.odometry().stop()
     except Exception as ex:
@@ -282,45 +289,13 @@ def map_contents():
 
 
 def white_map_contents():
-    return b"""\
-7 7 400
-0 0 0 1 0 0 0 0 0 0 0 0 0 0 0
-0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 0 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 0 1 1 0 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 0 1 0 0 0 0 0 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-"""
+    with open("mapaA_CARRERA.txt", "r") as file:
+        return file.read()
 
 
 def black_map_contents():
-    return b"""\
-7 7 400
-0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
-0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 0 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 0 1 1 0 1 1 0
-0 1 0 0 0 0 0 1 0 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 1 1 1 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-"""
+    with open("mapaB_CARRERA.txt", "r") as file:
+        return file.read()
 
 
 def run():
@@ -387,6 +362,7 @@ def run():
     #     # display_visited_points_in_graph(ctrl.visited_points)
     except BaseException as e:
         print('captured exception: %s' % e)
+        print(traceback.format_exc())
     finally:
         stop_robot(factory)
         BP.reset_all()
